@@ -90,8 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mt-8">
             <NavList />
           </div>
-          <div className="mt-auto border-t border-rule px-3 pt-4">
-            <Link to="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <div className="mt-auto space-y-3 border-t border-rule px-3 pt-4">
+            <ThemeToggle className="w-full justify-center" />
+            <Link to="/" className="block text-xs text-muted-foreground transition-colors hover:text-foreground">
               Back to home
             </Link>
           </div>
