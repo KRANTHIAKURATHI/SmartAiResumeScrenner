@@ -74,14 +74,9 @@ function LandingPage() {
             Open your screening desk
           </Link>
         ) : (
-          <>
-            <Link to="/auth" className={btn.primary}>
-              Sign in to start screening
-            </Link>
-            <Link to="/auth" search={{ mode: "signup" }} className={btn.ghost}>
-              Create an account
-            </Link>
-          </>
+          <Link to="/auth" className={btn.primary}>
+            Sign in or create an account
+          </Link>
         )}
       </div>
 
