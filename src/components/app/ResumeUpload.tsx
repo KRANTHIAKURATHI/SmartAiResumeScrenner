@@ -144,7 +144,7 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
         <Upload className="size-5 text-muted-foreground" strokeWidth={1.5} aria-hidden />
         <p className="mt-3 font-serif text-lg">Drop resumes to screen</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          PDF, TXT or MD · up to 10 MB each · multiple files supported
+          PDF, DOCX, TXT or MD · up to 10 MB each · multiple files supported
         </p>
         <button type="button" className={cn(btn.ghost, "mt-4")} onClick={() => inputRef.current?.click()}>
           Choose files

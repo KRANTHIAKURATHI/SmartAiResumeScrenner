@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type Mode = "signin" | "signup" | "forgot";
+type Role = "recruiter" | "candidate";
+
+async function destinationForCurrentUser(): Promise<"/overview" | "/candidate"> {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) return "/overview";
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+  const roles = (data ?? []).map((r) => r.role as string);
+  return roles.includes("candidate") && !roles.includes("recruiter") ? "/candidate" : "/overview";
+}
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -38,6 +48,7 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<Role>("recruiter");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,20 +60,20 @@ function AuthPage() {
       if (mode === "signin") {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        navigate({ to: "/overview", replace: true });
+        navigate({ to: await destinationForCurrentUser(), replace: true });
       } else if (mode === "signup") {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/overview`,
+            data: { full_name: fullName, role },
+            emailRedirectTo: `${window.location.origin}${role === "candidate" ? "/candidate" : "/overview"}`,
           },
         });
         if (err) throw err;
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          navigate({ to: "/overview", replace: true });
+          navigate({ to: role === "candidate" ? "/candidate" : "/overview", replace: true });
         } else {
           toast.success("Account created. Check your inbox to confirm your email.");
           setMode("signin");
@@ -93,11 +104,38 @@ function AuthPage() {
           {mode === "signin"
             ? "Continue to your screening workspace."
             : mode === "signup"
-              ? "Your jobs, candidates and resumes stay private to your account."
+              ? role === "candidate"
+                ? "Apply to open roles and follow the progress of every application."
+                : "Your jobs, candidates and resumes stay private to your account."
               : "We'll email you a link to set a new password."}
         </p>
 
         <form onSubmit={submit} className="mt-8 space-y-5 border-t border-rule pt-6">
+          {mode === "signup" && (
+            <fieldset>
+              <span className="label-caps">I am a</span>
+              <div className="mt-1.5 flex divide-x divide-rule border border-input">
+                {(["recruiter", "candidate"] as Role[]).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    aria-pressed={role === r}
+                    className={`flex-1 px-3 py-2 text-sm capitalize transition-colors ${
+                      role === r ? "bg-primary text-primary-foreground" : "bg-paper text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {role === "recruiter"
+                  ? "Create roles, upload resumes and rank candidates."
+                  : "Browse open roles and apply with your PDF or Word resume."}
+              </p>
+            </fieldset>
+          )}
           {mode === "signup" && (
             <Field label="Full name">
               <input

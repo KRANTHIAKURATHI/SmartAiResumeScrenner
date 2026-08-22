@@ -156,3 +156,53 @@ export function rankApplications(apps: ApplicationWithRelations[]) {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 }
+
+export type AppRole = "recruiter" | "candidate";
+
+export const roleQuery = () =>
+  queryOptions({
+    queryKey: ["role"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<AppRole> => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) return "recruiter";
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      if (error) throw new Error(error.message);
+      const roles = (data ?? []).map((r) => r.role as AppRole);
+      return roles.includes("recruiter") ? "recruiter" : roles.includes("candidate") ? "candidate" : "recruiter";
+    },
+  });
+
+/** Active roles a candidate can apply to (RLS restricts this to open roles). */
+export const openJobsQuery = () =>
+  queryOptions({
+    queryKey: ["open-jobs"],
+    queryFn: async () =>
+      unwrap<JobRow[]>(
+        await supabase
+          .from("jobs")
+          .select("*")
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(200),
+      ),
+  });
+
+/** The signed-in candidate's own applications. */
+export const myApplicationsQuery = () =>
+  queryOptions({
+    queryKey: ["my-applications"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("applications")
+        .select(APPLICATION_SELECT)
+        .eq("candidate_user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as ApplicationWithRelations[];
+    },
+  });
