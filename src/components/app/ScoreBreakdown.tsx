@@ -132,7 +132,10 @@ export function ScoreWithBreakdown({
           {children}
         </button>
       </HoverCardTrigger>
-      <HoverCardContent align="start" className="w-auto rounded-xl border-border bg-paper p-3.5 shadow-md">
+      <HoverCardContent
+        align="start"
+        className="w-auto rounded-[1.5rem] border border-border/60 bg-paper/70 p-4 shadow-xl backdrop-blur-xl backdrop-saturate-150"
+      >
         <ScoreBreakdownCard input={input} />
       </HoverCardContent>
     </HoverCard>
