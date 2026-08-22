@@ -36,9 +36,18 @@ function CandidatesPage() {
   useApplicationsRealtime();
   const applications = useSuspenseQuery(applicationsQuery());
   const jobs = useSuspenseQuery(jobsQuery());
+  const duplicates = useSuspenseQuery(duplicateCandidatesQuery());
   const [term, setTerm] = useState("");
   const [jobFilter, setJobFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [minScore, setMinScore] = useState(0);
+  const [minExperience, setMinExperience] = useState(0);
+  const [duplicatesOnly, setDuplicatesOnly] = useState(false);
+
+  const duplicateIds = useMemo(
+    () => new Set(duplicates.data.flatMap((g) => g.candidates.map((c) => c.id))),
+    [duplicates.data],
+  );
 
   const rows = useMemo(() => {
     const q = term.trim().toLowerCase();
@@ -46,6 +55,9 @@ function CandidatesPage() {
       applications.data.filter((app) => {
         if (jobFilter !== "all" && app.job_id !== jobFilter) return false;
         if (statusFilter !== "all" && app.status !== statusFilter) return false;
+        if (minScore > 0 && Number(app.match_score ?? 0) < minScore) return false;
+        if (minExperience > 0 && Number(app.candidate?.years_experience ?? 0) < minExperience) return false;
+        if (duplicatesOnly && !(app.candidate_id && duplicateIds.has(app.candidate_id))) return false;
         if (!q) return true;
         const haystack = [
           app.candidate?.name,
@@ -64,7 +76,16 @@ function CandidatesPage() {
         return haystack.includes(q);
       }),
     );
-  }, [applications.data, term, jobFilter, statusFilter]);
+  }, [
+    applications.data,
+    term,
+    jobFilter,
+    statusFilter,
+    minScore,
+    minExperience,
+    duplicatesOnly,
+    duplicateIds,
+  ]);
 
   return (
     <div className="space-y-8">
