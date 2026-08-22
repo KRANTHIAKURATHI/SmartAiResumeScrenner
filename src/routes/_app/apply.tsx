@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
 import { Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createResumeUpload } from "@/lib/data.functions";
 import { applyToJob } from "@/lib/candidate.functions";
 import { myApplicationsQuery, openJobsQuery } from "@/lib/queries";
 import {
@@ -62,11 +63,14 @@ function ApplyPage() {
     }
     setBusyJob(jobId);
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `applications/${crypto.randomUUID()}-${safeName}`;
+      const { path, token } = await createResumeUpload({
+        data: { filename: file.name, folder: "applications" },
+      });
       const { error: uploadError } = await supabase.storage
         .from("resumes")
-        .upload(path, file, { contentType: file.type || "application/octet-stream" });
+        .uploadToSignedUrl(path, token, file, {
+          contentType: file.type || "application/octet-stream",
+        });
       if (uploadError) {
         toast.error("Upload failed. Check your connection and try again.");
         return;

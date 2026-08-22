@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { applicationQuery } from "@/lib/queries";
 import { getResumeUrl, screenApplication } from "@/lib/screening.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { setApplicationStatus, saveRecruiterNotes } from "@/lib/data.functions";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import {
   PageHeader,
@@ -77,20 +77,28 @@ function ApplicationPage() {
 
   async function setStatus(status: string) {
     setBusy(true);
-    const patch: { status: string; shortlisted_at?: string } = { status };
-    if (status === "shortlisted") patch.shortlisted_at = new Date().toISOString();
-    const { error } = await supabase.from("applications").update(patch).eq("id", appId);
+    try {
+      await setApplicationStatus({ data: { applicationId: appId, status } });
+    } catch {
+      setBusy(false);
+      toast.error("Could not update this candidate.");
+      return;
+    }
     setBusy(false);
-    if (error) { toast.error("Could not update this candidate."); return; }
     queryClient.invalidateQueries({ queryKey: ["application", appId] });
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
 
   async function saveNotes() {
     setSavingNotes(true);
-    const { error } = await supabase.from("applications").update({ recruiter_notes: notes }).eq("id", appId);
+    try {
+      await saveRecruiterNotes({ data: { applicationId: appId, notes } });
+    } catch {
+      setSavingNotes(false);
+      toast.error("Notes could not be saved.");
+      return;
+    }
     setSavingNotes(false);
-    if (error) { toast.error("Notes could not be saved."); return; }
     toast.success("Notes saved.");
     queryClient.invalidateQueries({ queryKey: ["application", appId] });
   }

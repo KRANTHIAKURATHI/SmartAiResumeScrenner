@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { applicationsQuery, jobsQuery, rankApplications } from "@/lib/queries";
-import { supabase } from "@/integrations/supabase/client";
+import { setApplicationStatus } from "@/lib/data.functions";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { PageHeader, SectionHeading, EmptyState, SkillList, InlineError, btn, Score } from "@/components/app/primitives";
 import { formatDate, formatExperience } from "@/lib/domain";
@@ -36,8 +36,12 @@ function ShortlistPage() {
     .filter((g) => g.apps.length > 0);
 
   async function remove(applicationId: string) {
-    const { error } = await supabase.from("applications").update({ status: "screened" }).eq("id", applicationId);
-    if (error) { toast.error("Could not update this candidate."); return; }
+    try {
+      await setApplicationStatus({ data: { applicationId, status: "screened" } });
+    } catch {
+      toast.error("Could not update this candidate.");
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
 

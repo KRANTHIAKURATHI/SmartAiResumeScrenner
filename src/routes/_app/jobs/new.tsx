@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createJob } from "@/lib/data.functions";
 import { PageHeader, SectionHeading, btn, field, InlineError } from "@/components/app/primitives";
 import { toast } from "sonner";
 
@@ -56,30 +56,31 @@ function NewJobPage() {
     if (required.length === 0) { setError("List at least one required skill."); return; }
 
     setBusy(true);
-    const { data, error: insertError } = await supabase
-      .from("jobs")
-      .insert({
-        title: form.title.trim(),
-        department: form.department.trim() || null,
-        location: form.location.trim() || null,
-        employment_type: form.employment_type || null,
-        minimum_experience: Number(form.minimum_experience) || 0,
-        required_skills: required,
-        preferred_skills: splitList(form.preferred_skills),
-        description: form.description.trim(),
-      })
-      .select("id")
-      .single();
-
-    setBusy(false);
-    if (insertError || !data) {
+    let jobId: string;
+    try {
+      const created = await createJob({
+        data: {
+          title: form.title.trim(),
+          department: form.department.trim() || null,
+          location: form.location.trim() || null,
+          employment_type: form.employment_type || null,
+          minimum_experience: Number(form.minimum_experience) || 0,
+          required_skills: required,
+          preferred_skills: splitList(form.preferred_skills),
+          description: form.description.trim(),
+        },
+      });
+      jobId = created.id;
+    } catch {
+      setBusy(false);
       setError("The job could not be saved. Please try again.");
       return;
     }
+    setBusy(false);
 
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
     toast.success("Job created. Upload resumes to start screening.");
-    navigate({ to: "/jobs/$jobId", params: { jobId: data.id } });
+    navigate({ to: "/jobs/$jobId", params: { jobId } });
   }
 
   return (

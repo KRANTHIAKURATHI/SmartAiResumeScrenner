@@ -3,7 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Upload, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { screenApplication } from "@/lib/screening.functions";
+import { createResumeUpload } from "@/lib/data.functions";
+import { applyToJob } from "@/lib/candidate.functions";
 import { validateResumeFile, formatBytes, ACCEPTED_RESUME_TYPES } from "@/lib/domain";
 import { btn } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ type QueueItem = {
 
 export function ResumeUpload({ jobId }: { jobId: string }) {
   const queryClient = useQueryClient();
-  const screen = useServerFn(screenApplication);
+  const intake = useServerFn(applyToJob);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -31,43 +32,18 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
     async (item: QueueItem) => {
       patch(item.id, { state: "uploading", message: undefined });
 
-      const safeName = item.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `uploads/${crypto.randomUUID()}-${safeName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("resumes")
-        .upload(path, item.file, { contentType: item.file.type || "application/octet-stream" });
-      if (uploadError) {
+      let path: string;
+      try {
+        const upload = await createResumeUpload({ data: { filename: item.file.name, folder: "uploads" } });
+        const { error: uploadError } = await supabase.storage
+          .from("resumes")
+          .uploadToSignedUrl(upload.path, upload.token, item.file, {
+            contentType: item.file.type || "application/octet-stream",
+          });
+        if (uploadError) throw uploadError;
+        path = upload.path;
+      } catch {
         patch(item.id, { state: "error", message: "Upload failed. Check your connection and retry." });
-        return;
-      }
-
-      const { data: candidate, error: candidateError } = await supabase
-        .from("candidates")
-        .insert({
-          name: "Unknown candidate",
-          resume_path: path,
-          resume_filename: item.file.name,
-        })
-        .select("id")
-        .single();
-      if (candidateError || !candidate) {
-        patch(item.id, { state: "error", message: "Could not create the candidate record." });
-        return;
-      }
-
-      const { data: application, error: applicationError } = await supabase
-        .from("applications")
-        .insert({
-          job_id: jobId,
-          candidate_id: candidate.id,
-          source_filename: item.file.name,
-          status: "uploaded",
-        })
-        .select("id")
-        .single();
-      if (applicationError || !application) {
-        patch(item.id, { state: "error", message: "Could not attach this resume to the job." });
         return;
       }
 
@@ -75,11 +51,13 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
       patch(item.id, { state: "screening" });
 
       try {
-        const result = await screen({ data: { applicationId: application.id } });
+        const result = await intake({
+          data: { jobId, resumePath: path, filename: item.file.name },
+        });
         if (result.ok) {
           patch(item.id, { state: "done", message: `Scored ${result.score}/10` });
         } else {
-          patch(item.id, { state: "error", message: result.error });
+          patch(item.id, { state: "error", message: result.error ?? "Screening could not be completed." });
         }
       } catch (error) {
         console.error(error);
@@ -89,7 +67,7 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
         queryClient.invalidateQueries({ queryKey: ["candidates"] });
       }
     },
-    [jobId, queryClient, screen],
+    [jobId, queryClient, intake],
   );
 
   const addFiles = useCallback(

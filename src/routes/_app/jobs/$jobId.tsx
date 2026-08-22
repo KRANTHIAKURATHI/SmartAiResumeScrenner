@@ -5,7 +5,7 @@ import { useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { applicationsQuery, jobQuery, rankApplications } from "@/lib/queries";
 import { screenApplication } from "@/lib/screening.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { setApplicationStatus, setJobStatus, deleteJob as deleteJobFn } from "@/lib/data.functions";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { ResumeUpload } from "@/components/app/ResumeUpload";
 import {
@@ -74,14 +74,14 @@ function JobDetailPage() {
 
   async function setStatus(applicationId: string, status: string) {
     setBusyId(applicationId);
-    const patch: { status: string; shortlisted_at?: string } = { status };
-    if (status === "shortlisted") patch.shortlisted_at = new Date().toISOString();
-    const { error } = await supabase.from("applications").update(patch).eq("id", applicationId);
-    setBusyId(null);
-    if (error) {
+    try {
+      await setApplicationStatus({ data: { applicationId, status } });
+    } catch {
+      setBusyId(null);
       toast.error("Could not update this candidate.");
       return;
     }
+    setBusyId(null);
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
 
@@ -100,15 +100,23 @@ function JobDetailPage() {
   }
 
   async function updateJobStatus(status: string) {
-    const { error } = await supabase.from("jobs").update({ status }).eq("id", j.id);
-    if (error) { toast.error("Could not update the job status."); return; }
+    try {
+      await setJobStatus({ data: { jobId: j.id, status } });
+    } catch {
+      toast.error("Could not update the job status.");
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["job", j.id] });
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
   }
 
   async function deleteJob() {
-    const { error } = await supabase.from("jobs").delete().eq("id", j.id);
-    if (error) { toast.error("Delete the applications for this role first."); return; }
+    try {
+      await deleteJobFn({ data: { jobId: j.id } });
+    } catch {
+      toast.error("Delete the applications for this role first.");
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
     toast.success("Job deleted.");
     navigate({ to: "/jobs" });
