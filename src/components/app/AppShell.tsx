@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/app/ThemeToggle";
 import {
   Sheet,
   SheetContent,
