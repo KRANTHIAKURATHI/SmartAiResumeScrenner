@@ -76,7 +76,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               <NavList onNavigate={() => setMenuOpen(false)} />
             </div>
           </SheetContent>
-        </Sheet>
+          </Sheet>
+        </div>
       </header>
 
       <div className="flex">
