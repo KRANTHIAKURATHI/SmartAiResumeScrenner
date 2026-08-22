@@ -1,1155 +1,162 @@
-# Talent Scout Suite
+# Smart Resume Screener
+
+An editorial, analytics-first resume screening workspace. Recruiters publish roles, candidates submit PDF/DOCX resumes, and an LLM screens every resume against the role and produces a structured, explainable match score.
+
+Built with TanStack Start (React 19 + Vite 7), Supabase (Postgres + Storage), and the Lovable AI Gateway (Gemini).
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [APIs & server functions](docs/API.md)
+- [Data model](docs/DATA-MODEL.md)
+
+---
+
+## Features
+
+**Jobs**
+- Create roles with description, required skills, preferred skills, requirement list, min/max experience, location and employment type.
+- Draft / active / closed lifecycle; only `active` roles appear on the public apply page.
+- Job detail view with a ranked candidate table.
+
+**Applications & resumes**
+- Public apply page: candidate details + resume upload (PDF, DOCX, TXT).
+- Resumes are stored in a **private** Supabase Storage bucket; access is only ever through short-lived signed URLs.
+- Server-side text extraction: `unpdf` for PDF, `fflate` for DOCX (`word/document.xml`), plain read for TXT.
+
+**AI screening**
+- One LLM pass extracts structured candidate data (name, email, phone, years of experience, skills, education, summary).
+- A second pass scores the resume against the job: match score 1–10, plus strengths, gaps, matched/missing skills and a verdict.
+- Scores are surfaced on a 100-point scale (`formatScore100`) with a hover-card **score breakdown** explaining the weighting: required skills 40%, requirement coverage 30%, experience 20%, preferred skills 10%.
+
+**Ranking, filtering, review**
+- Ranked candidate lists per job, plus a cross-job candidate index and a shortlist view.
+- Structured screening filters: score band, experience range, skills, status.
+- Duplicate candidate detection via normalized email/phone matching, flagged inline.
+- Status workflow (new → screened → shortlisted / rejected) and recruiter notes per application.
+- Adaptive polling refreshes application rows only while screening work is pending.
+
+**Platform**
+- All database and storage access runs through server functions using the service role — the browser never talks to Postgres directly, and no table is exposed to `anon`.
+- In-memory rate limiting on public endpoints (applications: 5 / 10 min, screening: 20 / 10 min).
+- Light/dark theme with a pre-hydration anti-flash script.
+- Unit tests with Vitest + Testing Library.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| Framework | TanStack Start v1 (React 19, SSR + server functions) |
+| Router | TanStack Router (file-based, `src/routes`) |
+| Build | Vite 7 |
+| Data fetching | TanStack Query v5 |
+| Styling | Tailwind CSS v4 (`src/styles.css` theme tokens) |
+| UI primitives | shadcn/ui + Radix UI, lucide-react icons |
+| Type safety | TypeScript, Zod validation on every server function input |
+| Database | Supabase Postgres (RLS enabled, no public policies) |
+| File storage | Supabase Storage — private `resumes` bucket, signed URLs |
+| AI | Lovable AI Gateway → `google/gemini-2.5-flash`, JSON-mode, temperature 0.1 |
+| Resume parsing | `unpdf` (PDF), `fflate` (DOCX) |
+| Testing | Vitest, @testing-library/react, Playwright (E2E scripts) |
+| Runtime | Edge/Worker runtime (Cloudflare Workers compatible) |
+
+**Typography & palette:** Instrument Serif for headings and numerals, Work Sans for body/UI; warm paper surfaces, near-black ink text, a single deep ink-red accent.
+
+---
+
+## AI model
+
+- **Model:** `google/gemini-2.5-flash`
+- **Endpoint:** `https://ai.gateway.lovable.dev/v1/chat/completions` (OpenAI-compatible chat completions)
+- **Settings:** `temperature: 0.1`, `response_format: { type: "json_object" }`
+- **Two prompts:** resume extraction, then job-vs-resume evaluation. Both responses are parsed and validated with Zod before anything is written to the database.
+- **Failure handling:** gateway `429` → "rate limited", `402` → "credits exhausted"; all other failures are logged server-side and returned as a safe message.
+
+---
+
+## Project structure
+
+```
+src/
+  routes/
+    __root.tsx              root layout, head metadata, theme script
+    index.tsx               public landing page
+    _app/                   app shell layout (pathless)
+      overview.tsx          metrics + recent activity
+      jobs/index.tsx        jobs table
+      jobs/new.tsx          create job form
+      jobs/$jobId.tsx       job detail + ranked candidates
+      applications/$applicationId.tsx   candidate profile + score breakdown
+      candidates.tsx        cross-job candidate index
+      shortlist.tsx         shortlisted candidates
+      apply.tsx             public candidate portal
+      settings.tsx
+  lib/
+    data.functions.ts       CRUD server functions (jobs, applications, candidates, uploads)
+    candidate.functions.ts  public application submission
+    screening.functions.ts  screening trigger + signed resume URL
+    screening.server.ts     screening pipeline orchestration
+    llm.server.ts           AI gateway client + Zod schemas
+    resume-extract.server.ts PDF/DOCX/TXT text extraction
+    rate-limit.server.ts    in-memory rate limiter
+    queries.ts              TanStack Query options
+    screening-filters.ts    filter logic (unit tested)
+    domain.ts               shared types, score formatting
+  components/app/           AppShell, ResumeUpload, ScoreBreakdown, ScreeningFilters, primitives
+supabase/migrations/        SQL migrations (schema, RLS lockdown, storage policies)
+docs/                       architecture, API and data-model documentation
+```
 
-Build a complete, production-quality Smart Resume Screener web application using Lovable + Supabase.
+---
 
-The application must be fully functional, not just a visual prototype.
+## Environment variables
 
-CORE OBJECTIVE
+Client-visible (safe):
 
-Build a recruitment application that allows a recruiter to:
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
+VITE_SUPABASE_PROJECT_ID
+```
 
-Create a job position
+Server-only (secret — never commit):
 
-Enter/paste a job description
+```
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SERVICE_ROLE_KEY
+LOVABLE_API_KEY          # authorizes AI gateway screening calls
+```
 
-Upload one or multiple PDF/text resumes
+Supabase keys come from Supabase Dashboard → Project Settings → API. `LOVABLE_API_KEY` only works on Lovable hosting; self-hosting elsewhere means swapping `src/lib/llm.server.ts` for a direct Gemini/OpenAI key.
 
-Parse candidate information
+---
 
-Extract skills, experience and education
-
-Compare each candidate semantically against the job description using an LLM
-
-Generate a match score from 1–10
-
-Explain why the candidate matches
-
-Rank candidates
-
-Shortlist candidates
-
-Review detailed candidate profiles
-
-The matching should be semantic rather than simple keyword matching.
-
-MOST IMPORTANT REQUIREMENT — UI DESIGN
-
-DO NOT MAKE THIS LOOK AI-GENERATED.
-
-This is the highest-priority design requirement.
-
-I do NOT want the typical Lovable/AI-generated SaaS dashboard appearance.
-
-Avoid:
-
-Purple/blue AI gradients
-
-Glowing backgrounds
-
-Excessive glassmorphism
-
-Giant rounded cards
-
-Huge dashboard statistics
-
-Excessive pill-shaped UI
-
-Generic AI sparkles
-
-Robot illustrations
-
-Floating AI assistant buttons
-
-"Powered by AI" everywhere
-
-Excessive animations
-
-Generic template dashboard layouts
-
-Excessive icons
-
-Random decorative graphics
-
-Excessive shadows
-
-Cards inside cards inside cards
-
-The final UI should look like a real product designed by a professional product/UI designer, not like a website generated by an AI tool.
-
-Create a unique visual identity specifically for this application.
-
-The design should feel:
-
-Editorial + analytical + professional + modern + trustworthy
-
-Think of a sophisticated recruitment/workplace product with excellent typography and information hierarchy.
-
-Do NOT copy any existing product.
-
-VISUAL LANGUAGE
-
-Use a restrained visual system.
-
-Prioritize:
-
-Excellent typography
-
-Strong hierarchy
-
-Precise spacing
-
-Subtle borders
-
-Clean tables
-
-Off-white/light neutral surfaces
-
-One distinctive accent color
-
-Minimal shadows
-
-Carefully chosen icons
-
-Dense but readable information
-
-Strong alignment
-
-Use whitespace intentionally.
-
-Not every section needs a card.
-
-Some information should sit directly on the page with dividers.
-
-Use cards only when they improve grouping or hierarchy.
-
-The interface should have personality through layout, typography and composition, not through gradients.
-
-APP STRUCTURE
-
-Create the following primary navigation:
-
-Overview
-Jobs
-Candidates
-Shortlist
-
-Secondary navigation:
-
-Settings
-Profile
-
-Use a compact left sidebar on desktop.
-
-The sidebar should not dominate the screen.
-
-On mobile, convert it into an appropriate responsive navigation.
-
-1. OVERVIEW / DASHBOARD
-
-Create a useful recruitment dashboard.
-
-Do NOT make it a wall of statistic cards.
-
-Show a compact summary:
-
-Active Jobs
-
-Candidates Screened
-
-Shortlisted
-
-Average Match Score
-
-Then show:
-
-Recent Screening Activity
-
-A clean timeline/list showing:
-
-Candidate → Job → Match Score → Status → Time
-
-Then:
-
-Active Jobs
-
-Show jobs in a compact table/list:
-
-Job
-Department
-Candidates
-Average Score
-Status
-Created
-
-Then:
-
-Top Candidates
-
-Show the highest-scoring candidates recently screened.
-
-The dashboard should immediately communicate:
-
-What jobs are active?
-Who needs attention?
-Which candidates are strongest?
-
-2. JOBS PAGE
-
-Create a professional jobs management page.
-
-Top area:
-
-Jobs
-
-Short description:
-
-"Manage open positions and screen candidates against their requirements."
-
-Primary button:
-
-+ New Job
-
-Display jobs in a clean table.
-
-Columns:
-
-Job
-
-Department
-
-Location
-
-Candidates
-
-Average Match
-
-Status
-
-Created
-
-Actions
-
-Do NOT use giant job cards.
-
-Include:
-
-Search
-
-Status filter
-
-Sort
-
-Create job
-
-3. CREATE JOB
-
-Create a polished job creation form.
-
-Sections:
-
-Position
-
-Job title
-
-Department
-
-Location
-
-Employment type
-
-Requirements
-
-Minimum experience
-
-Required skills
-
-Preferred skills
-
-Job Description
-
-Large text editor/textarea.
-
-Add a clear action:
-
-Create Job & Screen Candidates
-
-The form should feel like a professional HR application.
-
-4. JOB DETAIL PAGE
-
-When opening a job, show:
-
-Job title
-Department
-Location
-Experience requirement
-
-Then a screening summary:
-
-Candidates
-
-Screened
-
-Shortlisted
-
-Average Match
-
-Below that, create the main candidate ranking interface.
-
-5. RESUME UPLOAD
-
-Create a dedicated upload area inside the job.
-
-Allow:
-
-PDF
-
-Text resume
-
-Multiple resume upload
-
-Drag and drop
-
-The upload area should be compact and elegant.
-
-Example:
-
-Drop resumes here
-
-PDF or text files
-
-or
-
-Browse files
-
-After uploading, show a file list:
-
-Filename
-Size
-Status
-Remove
-
-Then:
-
-Start Screening
-
-Do not use giant animated upload illustrations.
-
-6. SCREENING PROCESS
-
-When screening begins, show useful progress.
-
-Example:
-
-Parsing resumes
-✓ Resume 01
-✓ Resume 02
-Processing Resume 03
-Waiting...
-
-Then AI matching:
-
-Extracting candidate profile
-Comparing experience
-Analyzing skills
-Calculating match
-
-Use subtle progress states.
-
-Do not show fake progress.
-
-The UI must reflect actual backend status.
-
-7. CANDIDATE RANKING
-
-This is the MOST IMPORTANT SCREEN.
-
-Create a sophisticated recruiter-oriented candidate table.
-
-Columns:
-
-#
-Candidate
-Current Role
-Experience
-Key Skills
-Match
-Status
-Actions
-
-Example:
-
-01 | Rahul Sharma | Software Engineer | 3 yrs | React, Node, SQL | 9.2 | Shortlisted
-
-Make this table highly readable.
-
-Use subtle score indicators.
-
-Avoid giant circular gauges.
-
-The score should be visually prominent but not overwhelming.
-
-Example:
-
-9.2 / 10
-
-with a small label:
-
-Excellent Match
-
-Allow:
-
-Sort by score
-
-Sort by experience
-
-Search candidates
-
-Filter by score
-
-Filter by status
-
-Filter by skills
-
-8. CANDIDATE PROFILE
-
-Clicking a candidate opens a detailed profile.
-
-Design this as a polished recruiter profile.
-
-Top:
-
-Candidate name
-Current role
-Location
-Email
-Phone
-
-Match score:
-
-9.2 / 10
-
-Status:
-
-Shortlisted
-
-Actions:
-
-Shortlist
-Reject
-Mark Reviewed
-
-Then:
-
-Match Analysis
-
-Show:
-
-Skills Match
-
-Matching skills vs required skills
-
-Experience Match
-
-How closely their experience aligns with the position.
-
-Education Match
-
-Relevant education.
-
-Requirement Coverage
-
-How many important job requirements are supported by resume evidence.
-
-Use clean horizontal visualizations.
-
-9. MATCHING SKILLS
-
-Display extracted matching skills as compact labels.
-
-Example:
-
-React
-TypeScript
-Node.js
-PostgreSQL
-
-Then:
-
-Missing / Weak Areas
-
-Show requirements that are missing or insufficiently demonstrated.
-
-Do not present these aggressively.
-
-Use neutral language.
-
-10. AI JUSTIFICATION
-
-Create a section:
-
-Why this candidate matches
-
-The LLM should generate a concise explanation based ONLY on information found in the resume and job description.
-
-Example structure:
-
-Strong frontend experience aligns with the role's React and TypeScript requirements. Previous backend work also supports the position's API requirements.
-
-Do not allow the model to invent facts.
-
-If information is unavailable, say:
-
-Not found in resume
-
-rather than guessing.
-
-11. EXPERIENCE
-
-Display employment history chronologically.
-
-For each position:
-
-Job title
-Company
-Duration
-Relevant responsibilities
-
-Use a clean timeline or editorial layout.
-
-Do not turn every experience item into a huge card.
-
-12. EDUCATION
-
-Display:
-
-Degree
-Institution
-Year
-
-Also display certifications if they exist.
-
-13. ORIGINAL RESUME
-
-Allow recruiters to open/view the uploaded resume.
-
-Store resume files securely in Supabase Storage.
-
-Provide:
-
-View Resume
-
-and, where appropriate, a secure download option.
-
-14. SHORTLIST
-
-Create a dedicated Shortlist page.
-
-Show candidates that recruiters selected.
-
-Columns:
-
-Candidate
-Job
-Match Score
-Current Role
-Status
-Added Date
-Actions
-
-Allow recruiters to remove candidates from shortlist.
-
-15. CANDIDATE SEARCH
-
-Create global candidate search.
-
-Search by:
-
-Name
-
-Skill
-
-Job title
-
-Company
-
-Location
-
-Results should be fast and easy to scan.
-
-16. AUTHENTICATION
-
-Use Supabase Auth.
-
-Create:
-
-Sign up
-
-Login
-
-Logout
-
-Forgot password
-
-Protected application routes
-
-After login, redirect to Overview.
-
-Keep authentication screens extremely clean.
-
-17. SUPABASE DATABASE
-
-Use Supabase Postgres.
-
-Suggested schema:
-
-profiles
-
-id
-user_id
-full_name
-email
-role
-created_at
-
-jobs
-
-id
-user_id
-title
-department
-location
-employment_type
-description
-minimum_experience
-required_skills
-preferred_skills
-status
-created_at
-updated_at
-
-candidates
-
-id
-user_id
-name
-email
-phone
-location
-current_role
-years_experience
-skills
-education
-experience
-parsed_resume
-resume_path
-created_at
-
-applications
-
-id
-job_id
-candidate_id
-match_score
-match_summary
-matching_skills
-missing_skills
-experience_analysis
-education_analysis
-status
-recruiter_notes
-screened_at
-created_at
-
-Use proper relationships and indexes.
-
-18. ROW LEVEL SECURITY
-
-Implement proper Supabase RLS.
-
-A recruiter should only be able to access their own:
-
-Jobs
-
-Candidates
-
-Applications
-
-Resumes
-
-Notes
-
-Do not expose another user's recruitment data.
-
-Use authenticated user context.
-
-Supabase's current Edge Function guidance supports authenticated functions with the caller's RLS-scoped client, which should be used for user-specific operations.
-
-19. RESUME STORAGE
-
-Use Supabase Storage for uploaded resumes.
-
-Do not store large resume files directly in database rows.
-
-Use secure storage paths associated with the authenticated user.
-
-Implement file type validation.
-
-Reject unsupported file types.
-
-20. AI / LLM ARCHITECTURE
-
-Never expose the LLM API key in frontend code.
-
-Use a secure Supabase Edge Function for the AI processing.
-
-The Edge Function should:
-
-Receive authenticated request
-
-Retrieve resume/job data
-
-Parse/prepare the content
-
-Send structured content to the LLM
-
-Receive structured JSON
-
-Validate the response
-
-Save the result to Supabase
-
-Return the result to the frontend
-
-Supabase Edge Functions are designed for server-side integrations and small AI inference/orchestration tasks.
-
-21. LLM RESPONSE FORMAT
-
-Make the LLM return structured JSON.
-
-Required fields:
-
-match_score
-
-match_label
-
-matching_skills
-
-missing_skills
-
-experience_analysis
-
-education_analysis
-
-requirement_coverage
-
-justification
-
-Match score must be between:
-
-1 and 10
-
-The UI must never display malformed AI output.
-
-Validate the response before saving it.
-
-22. AI PROMPT PRINCIPLES
-
-The model should:
-
-Compare resume against job description
-
-Prioritize actual evidence
-
-Identify relevant skills
-
-Identify missing requirements
-
-Analyze experience relevance
-
-Analyze education relevance
-
-Produce a 1–10 score
-
-Explain the score
-
-The model must NOT:
-
-Invent experience
-
-Invent skills
-
-Invent education
-
-Infer unsupported personal information
-
-Make decisions based on protected characteristics
-
-Use name, gender, age, ethnicity, religion, photo, or similar irrelevant personal characteristics as scoring criteria
-
-The score should be based on job-related evidence only.
-
-23. LOADING STATES
-
-Implement polished skeleton loaders for:
-
-Dashboard
-
-Jobs
-
-Candidate table
-
-Candidate profile
-
-Screening results
-
-Do not use a spinner for every operation.
-
-24. EMPTY STATES
-
-Create custom empty states.
-
-Examples:
-
-No jobs yet
-
-Create your first position to start screening candidates.
-
-No candidates yet
-
-Upload resumes to begin screening.
-
-No shortlisted candidates
-
-Candidates you shortlist will appear here.
-
-Keep these minimal and product-focused.
-
-Avoid generic AI illustrations.
-
-25. ERROR STATES
-
-Handle:
-
-Invalid PDF
-
-Unsupported file
-
-Upload failure
-
-Resume parsing failure
-
-AI failure
-
-Database failure
-
-Authentication failure
-
-Network failure
-
-Use clear human-readable messages.
-
-Never display raw backend errors.
-
-26. RESPONSIVE DESIGN
-
-Desktop-first but fully responsive.
-
-Desktop:
-
-Professional sidebar + main workspace.
-
-Tablet:
-
-Condensed navigation.
-
-Mobile:
-
-Responsive navigation and candidate cards/list instead of forcing a wide desktop table.
-
-Do not simply shrink the desktop UI.
-
-27. INTERACTION DESIGN
-
-Use subtle micro-interactions:
-
-Row hover
-
-Button states
-
-Upload progress
-
-Status transitions
-
-Shortlist action
-
-Expand/collapse
-
-Page transitions
-
-Keep animations fast and understated.
-
-No excessive motion.
-
-28. DESIGN PERSONALITY
-
-Give the product a recognizable visual personality.
-
-Use:
-
-Distinctive typography pairing
-
-Strong editorial hierarchy
-
-Carefully designed data tables
-
-Slight asymmetry where appropriate
-
-Subtle dividers
-
-Thoughtful spacing
-
-Minimal but intentional iconography
-
-The product should feel designed, not decorated.
-
-29. DO NOT USE GENERIC AI DESIGN PATTERNS
-
-Absolutely avoid:
-
-❌ Purple gradient hero
-❌ Blue/purple glowing blobs
-❌ AI sparkles everywhere
-❌ Robot graphics
-❌ "Meet your AI recruiter" language
-❌ Chat interface
-❌ Glass cards
-❌ Excessive rounded rectangles
-❌ Huge colorful score circles
-❌ Generic dashboard template
-❌ Excessive shadows
-❌ Random illustrations
-❌ Decorative elements without purpose
-
-Instead:
-
-✓ Strong typography
-✓ Editorial composition
-✓ Useful information density
-✓ Clean tables
-✓ Restrained colors
-✓ Realistic recruiter workflow
-✓ Excellent spacing
-✓ Professional interaction design
-
-30. SAMPLE DATA
-
-Create realistic demo data for development.
-
-Include:
-
-2–3 example jobs
-
-8–12 example candidates
-
-Different match scores
-
-Different screening statuses
-
-Different skill combinations
-
-Make the sample data realistic enough to demonstrate the product.
-
-Clearly structure the application so demo data can later be replaced by real Supabase data.
-
-31. PERFORMANCE
-
-Keep the application fast.
-
-Avoid unnecessary database requests.
-
-Use appropriate indexes.
-
-Do not reload the entire candidate list when changing one candidate's status.
-
-Use pagination for large candidate lists.
-
-Use optimized queries.
-
-32. SECURITY
-
-Implement:
-
-Supabase Auth
-
-Row Level Security
-
-Secure Storage
-
-Protected routes
-
-Server-side AI calls
-
-Environment variables
-
-Input validation
-
-File validation
-
-Never expose secret API keys in frontend code.
-
-Supabase recommends keeping secrets in project secrets/environment variables and using authenticated Edge Functions for protected operations.
-
-33. CODE QUALITY
-
-Use clean component architecture.
-
-Separate:
-
-UI components
-
-Pages
-
-Supabase client
-
-Database operations
-
-AI functions
-
-Resume parsing
-
-Types
-
-Utilities
-
-Avoid one giant component.
-
-Use reusable components.
-
-Use TypeScript properly.
-
-Keep database types synchronized with the Supabase schema.
-
-34. FINAL USER FLOW
-
-The finished application should support this complete flow:
-
-LOGIN
-
-↓
-
-OVERVIEW
-
-↓
-
-CREATE JOB
-
-↓
-
-ENTER JOB DESCRIPTION
-
-↓
-
-UPLOAD MULTIPLE RESUMES
-
-↓
-
-START SCREENING
-
-↓
-
-PARSE RESUMES
-
-↓
-
-EXTRACT SKILLS / EXPERIENCE / EDUCATION
-
-↓
-
-AI MATCHING
-
-↓
-
-RANK CANDIDATES
-
-↓
-
-OPEN CANDIDATE
-
-↓
-
-VIEW MATCH ANALYSIS
-
-↓
-
-SHORTLIST
-
-↓
-
-REVIEW SHORTLIST
-
-35. FINAL DESIGN CHECK
-
-Before finishing, inspect every screen and ask:
-
-Does this look like an actual recruitment product?
-
-Does it look intentionally designed?
-
-Does it avoid the visual fingerprints of AI-generated websites?
-
-Is the candidate ranking screen the strongest part of the product?
-
-Can a recruiter understand the system without explanation?
-
-Are there any fake buttons?
-
-Are there any unfinished sections?
-
-Are all important interactions connected to Supabase?
-
-Are AI calls secure?
-
-Are RLS policies implemented?
-
-Are loading, error and empty states handled?
-
-If any answer is no, fix it before considering the project complete.
-
-FINAL INSTRUCTION
-
-Build the actual working application with Supabase integration.
-
-Do not create only a landing page or static mockup.
-
-Prioritize:
-
-1. Functionality
-2. Unique UI
-3. Recruiter usability
-4. Clean architecture
-5. Security
-6. AI matching quality
-
-The final result should feel like a real, distinctive recruitment SaaS product built by a small professional product team, not an AI-generated template.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/26f68be7-c5e7-432b-ad21-b72fc59e599d).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Local development
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
-npm run dev
+npm install
+cp .env.example .env   # then fill in the values above
+npm run dev            # http://localhost:8080
 ```
+
+Other scripts:
+
+```sh
+npm run build      # production build
+npm run test       # unit tests (Vitest)
+npm run lint       # ESLint
+```
+
+Database schema is applied from `supabase/migrations/` in filename order.
+
+---
+
+## Security model
+
+- RLS is enabled on every table with **no permissive policies**; `anon` and `authenticated` have no table grants. Reads and writes only happen inside server functions using the service-role client.
+- The `resumes` bucket is private. Uploads use signed upload URLs; downloads use short-lived signed URLs.
+- Realtime is not enabled on `applications` — the UI polls a server function instead, so no row data is broadcast.
+- Every server function validates input with Zod; public endpoints are rate limited.
