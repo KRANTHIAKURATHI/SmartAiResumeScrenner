@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_app/shortlist")({
 });
 
 function ShortlistPage() {
-  useApplicationsRealtime();
+  useApplicationsRealtime(false);
   const queryClient = useQueryClient();
   const jobs = useSuspenseQuery(jobsQuery());
   const applications = useSuspenseQuery(applicationsQuery({ status: ["shortlisted"] }));

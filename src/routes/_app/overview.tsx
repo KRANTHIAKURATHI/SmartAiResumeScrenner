@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { applicationsQuery, jobsQuery, rankApplications } from "@/lib/queries";
-import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { hasPendingWork, useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import {
   PageHeader,
   MetricStrip,
@@ -38,9 +38,9 @@ export const Route = createFileRoute("/_app/overview")({
 });
 
 function OverviewPage() {
-  useApplicationsRealtime();
   const jobs = useSuspenseQuery(jobsQuery());
   const applications = useSuspenseQuery(applicationsQuery());
+  useApplicationsRealtime(hasPendingWork(applications.data));
 
   const apps = applications.data;
   const activeJobs = jobs.data.filter((j) => j.status === "active");

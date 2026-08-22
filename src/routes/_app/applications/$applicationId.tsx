@@ -6,7 +6,7 @@ import { ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { applicationQuery } from "@/lib/queries";
 import { getResumeUrl, screenApplication } from "@/lib/screening.functions";
 import { setApplicationStatus, saveRecruiterNotes } from "@/lib/data.functions";
-import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { hasPendingWork, useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import {
   PageHeader,
   SectionHeading,
@@ -50,12 +50,12 @@ export const Route = createFileRoute("/_app/applications/$applicationId")({
 const COVERAGE_LABEL: Record<string, string> = { matched: "Matched", partial: "Partial", missing: "Missing" };
 
 function ApplicationPage() {
-  useApplicationsRealtime();
   const { applicationId } = Route.useParams();
   const queryClient = useQueryClient();
   const rescreen = useServerFn(screenApplication);
   const resumeUrl = useServerFn(getResumeUrl);
   const { data: app } = useSuspenseQuery(applicationQuery(applicationId));
+  useApplicationsRealtime(hasPendingWork(app ? [app] : []));
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);

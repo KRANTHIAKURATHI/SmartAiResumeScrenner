@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { hasPendingWork, useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
 import { Upload, FileText } from "lucide-react";
@@ -50,6 +51,7 @@ function ApplyPage() {
   const apply = useServerFn(applyToJob);
   const jobs = useSuspenseQuery(openJobsQuery());
   const applications = useSuspenseQuery(myApplicationsQuery());
+  useApplicationsRealtime(hasPendingWork(applications.data));
   const inputRef = useRef<HTMLInputElement>(null);
   const [pendingJob, setPendingJob] = useState<string | null>(null);
   const [busyJob, setBusyJob] = useState<string | null>(null);
