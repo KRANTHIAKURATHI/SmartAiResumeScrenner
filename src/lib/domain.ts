@@ -39,6 +39,12 @@ export function formatScore(score: number | null | undefined): string {
   return Number(score).toFixed(1);
 }
 
+/** Match score expressed out of 100, e.g. "72/100". */
+export function formatScore100(score: number | null | undefined): string {
+  if (score == null) return "—";
+  return `${Math.round(Number(score) * 10)}/100`;
+}
+
 export function formatExperience(years: number | null | undefined): string {
   if (years == null) return "Not found";
   if (years === 0) return "Entry level";

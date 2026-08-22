@@ -19,7 +19,7 @@ import {
   Th,
   Td,
 } from "@/components/app/primitives";
-import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, validateResumeFile } from "@/lib/domain";
+import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, formatScore100, validateResumeFile } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -194,6 +194,7 @@ function ApplyPage() {
                   <Th>Role</Th>
                   <Th>Resume</Th>
                   <Th>Submitted</Th>
+                  <Th>Score</Th>
                   <Th>Status</Th>
                 </tr>
               </thead>
@@ -216,6 +217,13 @@ function ApplyPage() {
                       </span>
                     </Td>
                     <Td className="numeral text-xs">{formatDate(app.created_at)}</Td>
+                    <Td className="numeral text-sm">
+                      {app.match_score == null ? (
+                        <span className="text-xs text-muted-foreground">Pending</span>
+                      ) : (
+                        formatScore100(app.match_score)
+                      )}
+                    </Td>
                     <Td>
                       <StatusText status={app.status} />
                     </Td>
