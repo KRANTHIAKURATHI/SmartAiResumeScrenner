@@ -36,11 +36,15 @@ function friendlyAuthError(message: string): string {
   if (m.includes("invalid login")) return "That email and password combination doesn't match an account.";
   if (m.includes("already registered") || m.includes("already been registered"))
     return "An account already exists for this email. Try signing in instead.";
+  if (m.includes("email rate limit") || m.includes("over_email_send_rate_limit"))
+    return "Supabase's confirmation-email limit for this project has been reached. Turn off \u201cConfirm email\u201d in Supabase Auth settings, or wait about an hour and try again.";
+  if (m.includes("rate limit") || m.includes("too many"))
+    return "Too many attempts. Wait a moment and try again.";
   if (m.includes("password")) return "Password must be at least 6 characters.";
   if (m.includes("email")) return "Enter a valid email address.";
-  if (m.includes("rate limit")) return "Too many attempts. Wait a moment and try again.";
   return "We couldn't complete that request. Please try again.";
 }
+
 
 function AuthPage() {
   const navigate = useNavigate();
