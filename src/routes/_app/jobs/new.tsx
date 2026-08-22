@@ -56,17 +56,9 @@ function NewJobPage() {
     if (required.length === 0) { setError("List at least one required skill."); return; }
 
     setBusy(true);
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) {
-      setBusy(false);
-      { setError("Your session expired. Sign in again."); return; }
-    }
-
     const { data, error: insertError } = await supabase
       .from("jobs")
       .insert({
-        user_id: userId,
         title: form.title.trim(),
         department: form.department.trim() || null,
         location: form.location.trim() || null,
