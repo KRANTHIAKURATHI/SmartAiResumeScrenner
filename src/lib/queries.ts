@@ -6,7 +6,11 @@ import {
   listApplications,
   getApplication,
   listCandidates,
+  listDuplicateCandidates,
+  type DuplicateGroup,
 } from "@/lib/data.functions";
+
+export type { DuplicateGroup };
 
 export type JobRow = {
   id: string;
