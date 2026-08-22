@@ -41,8 +41,8 @@ describe("experience and size formatting", () => {
   it("formats years", () => {
     expect(formatExperience(null)).toBe("Not found");
     expect(formatExperience(0)).toBe("Entry level");
-    expect(formatExperience(4)).toBe("4 yrs");
-    expect(formatExperience(4.5)).toBe("4.5 yrs");
+    expect(formatExperience(4)).toBe("4 years");
+    expect(formatExperience(4.5)).toBe("4.5 years");
   });
 
   it("formats bytes", () => {
