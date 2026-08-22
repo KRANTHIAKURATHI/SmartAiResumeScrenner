@@ -185,31 +185,21 @@ function JobDetailPage() {
       </section>
 
       <section>
-        <SectionHeading
-          label="Ranked candidates"
-          action={
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              Min score
-              <input
-                type="range"
-                min={0}
-                max={10}
-                step={1}
-                value={minScore}
-                onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-24 accent-primary"
-              />
-              <span className="numeral w-4 text-foreground">{minScore}</span>
-            </label>
-          }
+        <SectionHeading label="Ranked candidates" />
+        <ScreeningFilters
+          value={filters}
+          onChange={setFilters}
+          skills={[...j.required_skills, ...j.preferred_skills]}
+          matched={ranked.length}
+          total={apps.length}
         />
         {ranked.length === 0 ? (
           <EmptyState
-            title={apps.length === 0 ? "No resumes uploaded for this role" : "No candidates above this score"}
+            title={apps.length === 0 ? "No resumes uploaded for this role" : "No candidates match these filters"}
             description={
               apps.length === 0
                 ? "Drop PDF or text resumes above. Each is stored, parsed and scored against this role's requirements."
-                : "Lower the minimum score to see more candidates."
+                : "Loosen the score, experience or skill filters to see more candidates."
             }
           />
         ) : (
