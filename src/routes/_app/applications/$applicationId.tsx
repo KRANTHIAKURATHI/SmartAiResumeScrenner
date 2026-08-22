@@ -168,11 +168,27 @@ function ApplicationPage() {
           <div className="border-y border-rule py-5">
             <p className="label-caps">Match score</p>
             <div className="mt-2">
-              <Score value={app.match_score} size="lg" showBar />
+              <ScoreWithBreakdown
+                className="block w-full"
+                input={{
+                  score: app.match_score,
+                  requiredSkills: app.job?.required_skills ?? null,
+                  preferredSkills: app.job?.preferred_skills ?? null,
+                  matchingSkills: app.matching_skills ?? null,
+                  minimumExperience: app.job?.minimum_experience ?? null,
+                  yearsExperience: candidate?.years_experience ?? null,
+                  coverage,
+                }}
+              >
+                <Score value={app.match_score} size="lg" showBar />
+              </ScoreWithBreakdown>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
               {app.match_label || scoreLabel(app.match_score)} · <StatusText status={app.status} />
             </p>
+            {app.match_score != null && (
+              <p className="mt-1 text-xs text-muted-foreground">Hover the score for the breakdown.</p>
+            )}
           </div>
 
           <div>
