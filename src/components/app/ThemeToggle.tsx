@@ -11,7 +11,13 @@ function apply(theme: Theme) {
   document.documentElement.style.colorScheme = theme;
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  iconOnly = false,
+}: {
+  className?: string;
+  iconOnly?: boolean;
+}) {
   const [theme, setTheme] = useState<Theme>("light");
   const [ready, setReady] = useState(false);
 
