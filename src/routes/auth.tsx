@@ -49,20 +49,20 @@ function AuthPage() {
       if (mode === "signin") {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        navigate({ to: "/", replace: true });
+        navigate({ to: "/overview", replace: true });
       } else if (mode === "signup") {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/overview`,
           },
         });
         if (err) throw err;
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          navigate({ to: "/", replace: true });
+          navigate({ to: "/overview", replace: true });
         } else {
           toast.success("Account created. Check your inbox to confirm your email.");
           setMode("signin");

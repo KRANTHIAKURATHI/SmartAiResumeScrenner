@@ -33,7 +33,7 @@ function ResetPage() {
       return;
     }
     toast.success("Password updated.");
-    navigate({ to: "/", replace: true });
+    navigate({ to: "/overview", replace: true });
   }
 
   return (

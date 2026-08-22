@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 
 const primaryNav = [
-  { to: "/", label: "Overview", icon: LayoutList },
+  { to: "/overview", label: "Overview", icon: LayoutList },
   { to: "/jobs", label: "Jobs", icon: Briefcase },
   { to: "/candidates", label: "Candidates", icon: Users },
   { to: "/shortlist", label: "Shortlist", icon: Bookmark },
