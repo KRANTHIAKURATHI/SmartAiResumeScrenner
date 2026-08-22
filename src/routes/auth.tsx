@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { createAccount } from "@/lib/auth.functions";
 import { toast } from "sonner";
+
 
 type Mode = "signin" | "signup" | "forgot";
 type Role = "recruiter" | "candidate";
@@ -48,6 +51,8 @@ function friendlyAuthError(message: string): string {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const createAccountFn = useServerFn(createAccount);
+
   const [mode, setMode] = useState<Mode>("signin");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -66,22 +71,13 @@ function AuthPage() {
         if (err) throw err;
         navigate({ to: await destinationForCurrentUser(), replace: true });
       } else if (mode === "signup") {
-        const { error: err } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName, role },
-            emailRedirectTo: `${window.location.origin}${role === "candidate" ? "/candidate" : "/overview"}`,
-          },
-        });
-        if (err) throw err;
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          navigate({ to: role === "candidate" ? "/candidate" : "/overview", replace: true });
-        } else {
-          toast.success("Account created. Check your inbox to confirm your email.");
-          setMode("signin");
-        }
+        // Accounts are created server-side with the email pre-confirmed, so no
+        // confirmation email is sent and sign-in works immediately.
+        await createAccountFn({ data: { email, password, fullName, role } });
+        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInErr) throw signInErr;
+        navigate({ to: role === "candidate" ? "/candidate" : "/overview", replace: true });
+
       } else {
         const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/auth/reset`,
