@@ -194,6 +194,7 @@ function ApplyPage() {
                   <Th>Role</Th>
                   <Th>Resume</Th>
                   <Th>Submitted</Th>
+                  <Th>Score</Th>
                   <Th>Status</Th>
                 </tr>
               </thead>
