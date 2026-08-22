@@ -30,6 +30,8 @@ export type CandidateRow = {
   certifications: unknown;
   experience: unknown;
   resume_filename: string | null;
+  resume_path: string | null;
+  parsed_resume: string | null;
   created_at: string;
 };
 
