@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/app/ThemeToggle";
 import {
   Sheet,
   SheetContent,
@@ -62,6 +63,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link to="/overview" className="font-serif text-lg leading-none">
           Resume Screener
         </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger className="rounded-sm border border-input p-1.5" aria-label="Open menu">
             <Menu className="size-4" strokeWidth={1.75} />
@@ -74,7 +77,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               <NavList onNavigate={() => setMenuOpen(false)} />
             </div>
           </SheetContent>
-        </Sheet>
+          </Sheet>
+        </div>
       </header>
 
       <div className="flex">
@@ -87,8 +91,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mt-8">
             <NavList />
           </div>
-          <div className="mt-auto border-t border-rule px-3 pt-4">
-            <Link to="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <div className="mt-auto space-y-3 border-t border-rule px-3 pt-4">
+            <ThemeToggle className="w-full justify-center" />
+            <Link to="/" className="block text-xs text-muted-foreground transition-colors hover:text-foreground">
               Back to home
             </Link>
           </div>

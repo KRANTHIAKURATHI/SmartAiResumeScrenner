@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { btn } from "@/components/app/primitives";
+import { ThemeToggle } from "@/components/app/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,7 +50,10 @@ const STEPS = [
 function LandingPage() {
   return (
     <main className="mx-auto max-w-[1100px] px-6 py-14 md:px-10 md:py-24">
-      <p className="label-caps">Smart Resume Screener</p>
+      <div className="flex items-center justify-between gap-4">
+        <p className="label-caps">Smart Resume Screener</p>
+        <ThemeToggle />
+      </div>
 
       <h1 className="mt-6 max-w-3xl text-4xl leading-[1.05] md:text-6xl">
         Screening that shows its <span className="text-primary">reasoning</span>, not just a number.
