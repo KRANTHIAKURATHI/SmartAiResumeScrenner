@@ -228,6 +228,11 @@ function CandidatesPage() {
                         ? app.candidate.name
                         : (app.source_filename ?? "Resume")}
                     </Link>
+                    {app.candidate_id && duplicateIds.has(app.candidate_id) && (
+                      <span className="ml-2 border border-primary/40 px-1 text-[10px] uppercase tracking-widest text-primary">
+                        Duplicate
+                      </span>
+                    )}
                     <span className="block text-xs text-muted-foreground">{app.candidate?.email ?? "No email in resume"}</span>
                   </Td>
                   <Td className="text-muted-foreground">
