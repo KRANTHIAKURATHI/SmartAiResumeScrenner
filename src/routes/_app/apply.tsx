@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Upload, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { applyToJob } from "@/lib/candidate.functions";
-import { myApplicationsQuery, openJobsQuery, profileQuery } from "@/lib/queries";
+import { myApplicationsQuery, openJobsQuery } from "@/lib/queries";
 import {
   PageHeader,
   SectionHeading,
@@ -15,6 +15,7 @@ import {
   SkillList,
   InlineError,
   btn,
+  field,
   Th,
   Td,
 } from "@/components/app/primitives";
@@ -22,7 +23,7 @@ import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, validateResumeFile
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/candidate")({
+export const Route = createFileRoute("/_app/apply")({
   head: () => ({
     meta: [
       { title: "Apply with your resume — Smart Resume Screener" },
@@ -40,20 +41,18 @@ export const Route = createFileRoute("/_authenticated/candidate")({
     ],
   }),
   errorComponent: ({ error }) => <InlineError message={error.message} />,
-  component: CandidatePortal,
+  component: ApplyPage,
 });
 
-function CandidatePortal() {
+function ApplyPage() {
   const queryClient = useQueryClient();
   const apply = useServerFn(applyToJob);
   const jobs = useSuspenseQuery(openJobsQuery());
   const applications = useSuspenseQuery(myApplicationsQuery());
-  const profile = useSuspenseQuery(profileQuery());
   const inputRef = useRef<HTMLInputElement>(null);
   const [pendingJob, setPendingJob] = useState<string | null>(null);
   const [busyJob, setBusyJob] = useState<string | null>(null);
-
-  const appliedJobIds = new Set(applications.data.map((a) => a.job_id));
+  const [fullName, setFullName] = useState("");
 
   async function submit(jobId: string, file: File) {
     const problem = validateResumeFile(file);
@@ -63,14 +62,8 @@ function CandidatePortal() {
     }
     setBusyJob(jobId);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) {
-        toast.error("Your session expired. Sign in again.");
-        return;
-      }
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
+      const path = `applications/${crypto.randomUUID()}-${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("resumes")
         .upload(path, file, { contentType: file.type || "application/octet-stream" });
@@ -83,32 +76,34 @@ function CandidatePortal() {
           jobId,
           resumePath: path,
           filename: file.name,
-          fullName: profile.data?.full_name ?? undefined,
+          fullName: fullName.trim() || undefined,
         },
       });
-      if (result.ok) toast.success("Application submitted. Your resume is being reviewed.");
+      if (result.ok) toast.success("Application submitted. The resume is being screened.");
       else toast.error(result.error);
     } catch (error) {
       console.error(error);
-      toast.error("Your application could not be submitted. Please try again.");
+      toast.error("The application could not be submitted. Please try again.");
     } finally {
       setBusyJob(null);
       queryClient.invalidateQueries({ queryKey: ["my-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({ queryKey: ["candidates"] });
     }
   }
 
   return (
     <div className="space-y-10">
       <PageHeader
-        eyebrow="Candidate"
-        title="Apply with your resume"
+        eyebrow="Apply"
+        title="Apply with a resume"
         description="Upload a PDF or Word (.docx) resume for any open role. Each submission is read and assessed against the role's requirements."
       />
 
       <MetricStrip
         items={[
           { label: "Open roles", value: jobs.data.length },
-          { label: "Your applications", value: applications.data.length },
+          { label: "Applications", value: applications.data.length },
           {
             label: "Under review",
             value: applications.data.filter((a) => ["uploaded", "processing", "screened", "reviewing"].includes(a.status))
@@ -117,6 +112,16 @@ function CandidatePortal() {
           { label: "Shortlisted", value: applications.data.filter((a) => a.status === "shortlisted").length },
         ]}
       />
+
+      <label className="block max-w-sm">
+        <span className="label-caps">Candidate name (optional)</span>
+        <input
+          className={`mt-1.5 ${field}`}
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Name on the resume"
+        />
+      </label>
 
       <input
         ref={inputRef}
@@ -137,56 +142,49 @@ function CandidatePortal() {
         {jobs.data.length === 0 ? (
           <EmptyState
             title="No roles are open right now"
-            description="Once a recruiter publishes an active role it will appear here for you to apply to."
+            description="Publish an active role from Jobs and it will appear here for applications."
           />
         ) : (
           <ul className="mt-2 divide-y divide-rule border-y border-rule">
-            {jobs.data.map((job) => {
-              const applied = appliedJobIds.has(job.id);
-              return (
-                <li key={job.id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="label-caps">
-                      {[job.department, job.employment_type, job.location].filter(Boolean).join(" · ") || "Role"}
-                    </p>
-                    <h3 className="mt-1 font-serif text-xl leading-snug">{job.title}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Minimum experience {formatExperience(job.minimum_experience)}
-                    </p>
-                    <div className="mt-2 max-w-xl">
-                      <SkillList skills={job.required_skills ?? []} limit={6} />
-                    </div>
+            {jobs.data.map((job) => (
+              <li key={job.id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="label-caps">
+                    {[job.department, job.employment_type, job.location].filter(Boolean).join(" · ") || "Role"}
+                  </p>
+                  <h3 className="mt-1 font-serif text-xl leading-snug">{job.title}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Minimum experience {formatExperience(job.minimum_experience)}
+                  </p>
+                  <div className="mt-2 max-w-xl">
+                    <SkillList skills={job.required_skills ?? []} limit={6} />
                   </div>
-                  <div className="shrink-0">
-                    {applied ? (
-                      <span className="text-xs text-muted-foreground">Applied</span>
-                    ) : (
-                      <button
-                        className={cn(btn.ghost)}
-                        disabled={busyJob === job.id}
-                        onClick={() => {
-                          setPendingJob(job.id);
-                          inputRef.current?.click();
-                        }}
-                      >
-                        <Upload className="size-3.5" strokeWidth={1.75} />
-                        {busyJob === job.id ? "Submitting…" : "Upload resume & apply"}
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+                </div>
+                <div className="shrink-0">
+                  <button
+                    className={cn(btn.ghost)}
+                    disabled={busyJob === job.id}
+                    onClick={() => {
+                      setPendingJob(job.id);
+                      inputRef.current?.click();
+                    }}
+                  >
+                    <Upload className="size-3.5" strokeWidth={1.75} />
+                    {busyJob === job.id ? "Submitting…" : "Upload resume & apply"}
+                  </button>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </section>
 
       <section>
-        <SectionHeading label="Your applications" />
+        <SectionHeading label="Recent applications" />
         {applications.data.length === 0 ? (
           <EmptyState
-            title="You haven't applied yet"
-            description="Pick a role above and upload your resume. PDF, DOCX, TXT and MD files up to 10 MB are accepted."
+            title="No applications yet"
+            description="Pick a role above and upload a resume. PDF, DOCX, TXT and MD files up to 10 MB are accepted."
           />
         ) : (
           <div className="mt-2 overflow-x-auto">

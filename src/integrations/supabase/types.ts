@@ -36,7 +36,7 @@ export type Database = {
           source_filename: string | null
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           candidate_id: string
@@ -59,7 +59,7 @@ export type Database = {
           source_filename?: string | null
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           candidate_id?: string
@@ -82,7 +82,7 @@ export type Database = {
           source_filename?: string | null
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -120,7 +120,7 @@ export type Database = {
           resume_path: string | null
           skills: string[]
           updated_at: string
-          user_id: string
+          user_id: string | null
           years_experience: number | null
         }
         Insert: {
@@ -141,7 +141,7 @@ export type Database = {
           resume_path?: string | null
           skills?: string[]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           years_experience?: number | null
         }
         Update: {
@@ -162,7 +162,7 @@ export type Database = {
           resume_path?: string | null
           skills?: string[]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           years_experience?: number | null
         }
         Relationships: []
@@ -181,7 +181,7 @@ export type Database = {
           status: string
           title: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -196,7 +196,7 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -211,58 +211,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          role: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -271,17 +220,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      job_owner: { Args: { _job_id: string }; Returns: string }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "recruiter" | "candidate"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -408,8 +350,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["recruiter", "candidate"],
-    },
+    Enums: {},
   },
 } as const

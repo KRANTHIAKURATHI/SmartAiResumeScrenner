@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
+export const Route = createFileRoute("/_app/jobs/$jobId")({
   head: () => ({
     meta: [
       { title: "Job screening — Smart Resume Screener" },

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SectionHeading, btn, field, InlineError } from "@/components/app/primitives";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/jobs/new")({
+export const Route = createFileRoute("/_app/jobs/new")({
   head: () => ({
     meta: [
       { title: "Create a job — Smart Resume Screener" },
@@ -56,17 +56,9 @@ function NewJobPage() {
     if (required.length === 0) { setError("List at least one required skill."); return; }
 
     setBusy(true);
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) {
-      setBusy(false);
-      { setError("Your session expired. Sign in again."); return; }
-    }
-
     const { data, error: insertError } = await supabase
       .from("jobs")
       .insert({
-        user_id: userId,
         title: form.title.trim(),
         department: form.department.trim() || null,
         location: form.location.trim() || null,

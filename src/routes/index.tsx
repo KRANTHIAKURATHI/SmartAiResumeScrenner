@@ -1,6 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { btn } from "@/components/app/primitives";
 
 export const Route = createFileRoute("/")({
@@ -49,12 +47,6 @@ const STEPS = [
 ];
 
 function LandingPage() {
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
-  }, []);
-
   return (
     <main className="mx-auto max-w-[1100px] px-6 py-14 md:px-10 md:py-24">
       <p className="label-caps">Smart Resume Screener</p>
@@ -69,15 +61,12 @@ function LandingPage() {
       </p>
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        {signedIn ? (
-          <Link to="/overview" className={btn.primary}>
-            Open your screening desk
-          </Link>
-        ) : (
-          <Link to="/auth" className={btn.primary}>
-            Sign in or create an account
-          </Link>
-        )}
+        <Link to="/overview" className={btn.primary}>
+          Open the screening desk
+        </Link>
+        <Link to="/apply" className={btn.ghost}>
+          Apply to an open role
+        </Link>
       </div>
 
       <section className="mt-20 border-t border-rule">
@@ -95,7 +84,7 @@ function LandingPage() {
 
       <section className="mt-20 grid gap-8 border-t border-rule pt-6 sm:grid-cols-3">
         {[
-          ["Private by default", "Resumes are stored in a private bucket and readable only by the account that uploaded them."],
+          ["Private by default", "Resumes are stored in a private bucket and only ever read server-side for screening."],
           ["No invented detail", "If something isn't in the resume, it is reported as not found rather than guessed."],
           ["Bias-aware prompts", "Protected characteristics are excluded from parsing and scoring; only job-related evidence counts."],
         ].map(([title, body]) => (

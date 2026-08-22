@@ -31,15 +31,8 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
     async (item: QueueItem) => {
       patch(item.id, { state: "uploading", message: undefined });
 
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) {
-        patch(item.id, { state: "error", message: "Your session expired. Sign in again." });
-        return;
-      }
-
       const safeName = item.file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
+      const path = `uploads/${crypto.randomUUID()}-${safeName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("resumes")
@@ -52,7 +45,6 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
       const { data: candidate, error: candidateError } = await supabase
         .from("candidates")
         .insert({
-          user_id: userId,
           name: "Unknown candidate",
           resume_path: path,
           resume_filename: item.file.name,
@@ -67,7 +59,6 @@ export function ResumeUpload({ jobId }: { jobId: string }) {
       const { data: application, error: applicationError } = await supabase
         .from("applications")
         .insert({
-          user_id: userId,
           job_id: jobId,
           candidate_id: candidate.id,
           source_filename: item.file.name,

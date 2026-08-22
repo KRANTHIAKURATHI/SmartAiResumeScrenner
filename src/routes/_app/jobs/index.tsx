@@ -7,7 +7,7 @@ import { PageHeader, EmptyState, InlineError, btn, Th, Td } from "@/components/a
 import { formatDate, formatScore, JOB_STATUS_LABEL, type JobStatus } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/jobs/")({
+export const Route = createFileRoute("/_app/jobs/")({
   head: () => ({
     meta: [
       { title: "Jobs — Smart Resume Screener" },

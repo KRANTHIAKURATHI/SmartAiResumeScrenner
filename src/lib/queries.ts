@@ -125,29 +125,6 @@ export const candidatesQuery = () =>
       ),
   });
 
-export const profileQuery = () =>
-  queryOptions({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return { ...(data ?? {}), email: data?.email ?? user.email ?? null, user_id: user.id } as {
-        id?: string;
-        user_id: string;
-        full_name: string | null;
-        email: string | null;
-        role?: string;
-      };
-    },
-  });
-
 export function rankApplications(apps: ApplicationWithRelations[]) {
   return [...apps].sort((a, b) => {
     const sa = a.match_score == null ? -1 : Number(a.match_score);
@@ -157,24 +134,7 @@ export function rankApplications(apps: ApplicationWithRelations[]) {
   });
 }
 
-export type AppRole = "recruiter" | "candidate";
-
-export const roleQuery = () =>
-  queryOptions({
-    queryKey: ["role"],
-    staleTime: 5 * 60 * 1000,
-    queryFn: async (): Promise<AppRole> => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) return "recruiter";
-      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-      if (error) throw new Error(error.message);
-      const roles = (data ?? []).map((r) => r.role as AppRole);
-      return roles.includes("recruiter") ? "recruiter" : roles.includes("candidate") ? "candidate" : "recruiter";
-    },
-  });
-
-/** Active roles a candidate can apply to (RLS restricts this to open roles). */
+/** Roles that are currently open for applications. */
 export const openJobsQuery = () =>
   queryOptions({
     queryKey: ["open-jobs"],
@@ -189,19 +149,16 @@ export const openJobsQuery = () =>
       ),
   });
 
-/** The signed-in candidate's own applications. */
+/** Applications submitted through the public apply page. */
 export const myApplicationsQuery = () =>
   queryOptions({
     queryKey: ["my-applications"],
     queryFn: async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData.user;
-      if (!user) return [];
       const { data, error } = await supabase
         .from("applications")
         .select(APPLICATION_SELECT)
-        .eq("candidate_user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw new Error(error.message);
       return (data ?? []) as unknown as ApplicationWithRelations[];
     },
