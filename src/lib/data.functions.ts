@@ -259,3 +259,26 @@ export const listDuplicateCandidates = createServerFn({ method: "GET" }).handler
     .filter((g) => g.candidates.length > 1)
     .sort((a, b) => b.candidates.length - a.candidates.length) as DuplicateGroup[];
 });
+
+/**
+ * Optional convenience for job posters: reads an uploaded job description
+ * file (PDF / DOCX / TXT) from the private bucket and returns its plain text
+ * so the form can prefill the description. Extraction stays server-side.
+ */
+export const importJobDescriptionFile = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ path: z.string().trim().min(1).max(300), filename: z.string().trim().min(1).max(255) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const db = await admin();
+    const { extractResumeText, ResumeExtractionError } = await import("./resume-extract.server");
+    const { data: file, error } = await db.storage.from("resumes").download(data.path);
+    if (error || !file) throw new Error("The uploaded file could not be read.");
+    try {
+      const text = await extractResumeText(file, data.filename);
+      return { text: text.slice(0, 20000) };
+    } catch (err) {
+      if (err instanceof ResumeExtractionError) throw new Error(err.message);
+      throw new Error("The file could not be read. Try a PDF or DOCX export.");
+    }
+  });
