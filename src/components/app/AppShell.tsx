@@ -62,6 +62,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link to="/overview" className="font-serif text-lg leading-none">
           Resume Screener
         </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger className="rounded-sm border border-input p-1.5" aria-label="Open menu">
             <Menu className="size-4" strokeWidth={1.75} />
