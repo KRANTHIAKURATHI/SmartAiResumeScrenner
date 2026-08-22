@@ -30,7 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/applications/$applicationId")({
+export const Route = createFileRoute("/_app/applications/$applicationId")({
   head: () => ({
     meta: [
       { title: "Candidate analysis — Smart Resume Screener" },

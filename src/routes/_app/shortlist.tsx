@@ -7,7 +7,7 @@ import { PageHeader, SectionHeading, EmptyState, SkillList, InlineError, btn, Sc
 import { formatDate, formatExperience } from "@/lib/domain";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/shortlist")({
+export const Route = createFileRoute("/_app/shortlist")({
   head: () => ({
     meta: [
       { title: "Shortlist — Smart Resume Screener" },

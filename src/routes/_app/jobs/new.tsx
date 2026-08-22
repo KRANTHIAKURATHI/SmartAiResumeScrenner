@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SectionHeading, btn, field, InlineError } from "@/components/app/primitives";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/jobs/new")({
+export const Route = createFileRoute("/_app/jobs/new")({
   head: () => ({
     meta: [
       { title: "Create a job — Smart Resume Screener" },

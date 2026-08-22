@@ -17,7 +17,7 @@ import {
 import { formatExperience, formatScore, relativeTime } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/candidates")({
+export const Route = createFileRoute("/_app/candidates")({
   head: () => ({
     meta: [
       { title: "Candidates — Smart Resume Screener" },
