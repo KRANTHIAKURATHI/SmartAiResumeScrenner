@@ -22,7 +22,7 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     // Warm the next screen while the pointer is still on the link.
-    // TEMP-TEST
+    defaultPreload: "intent",
     defaultPreloadDelay: 40,
     defaultPreloadStaleTime: 30_000,
   });
