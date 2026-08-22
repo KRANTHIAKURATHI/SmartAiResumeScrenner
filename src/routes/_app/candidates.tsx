@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { applicationsQuery, jobsQuery, rankApplications } from "@/lib/queries";
+import { applicationsQuery, duplicateCandidatesQuery, jobsQuery, rankApplications } from "@/lib/queries";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { EXPERIENCE_BANDS, SCORE_BANDS } from "@/lib/screening-filters";
 import {
   PageHeader,
+  SectionHeading,
   EmptyState,
   StatusText,
   SkillList,
