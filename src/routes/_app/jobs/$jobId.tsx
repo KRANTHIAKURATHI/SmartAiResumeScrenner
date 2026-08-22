@@ -6,7 +6,7 @@ import { RefreshCw, Trash2 } from "lucide-react";
 import { applicationsQuery, jobQuery } from "@/lib/queries";
 import { screenApplication } from "@/lib/screening.functions";
 import { setApplicationStatus, setJobStatus, deleteJob as deleteJobFn } from "@/lib/data.functions";
-import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { hasPendingWork, useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { ResumeUpload } from "@/components/app/ResumeUpload";
 import { ScreeningFilters } from "@/components/app/ScreeningFilters";
 import {
@@ -42,6 +42,11 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_app/jobs/$jobId")({
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobQuery(params.jobId)),
+      context.queryClient.ensureQueryData(applicationsQuery({ jobId: params.jobId })),
+    ]),
   head: () => ({
     meta: [
       { title: "Job screening — Smart Resume Screener" },
@@ -58,13 +63,13 @@ export const Route = createFileRoute("/_app/jobs/$jobId")({
 });
 
 function JobDetailPage() {
-  useApplicationsRealtime();
   const { jobId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const rescreen = useServerFn(screenApplication);
   const job = useSuspenseQuery(jobQuery(jobId));
   const applications = useSuspenseQuery(applicationsQuery({ jobId }));
+  useApplicationsRealtime(hasPendingWork(applications.data));
   const [filters, setFilters] = useState<ScreeningFilterState>(DEFAULT_SCREENING_FILTERS);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);

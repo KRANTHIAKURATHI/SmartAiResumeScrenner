@@ -8,8 +8,23 @@ import { z } from "zod";
  * holding only the publishable key.
  */
 
-const APPLICATION_SELECT =
-  "*, candidate:candidates(*), job:jobs(id, title, department, location, required_skills, preferred_skills, minimum_experience, status)";
+/**
+ * List payloads stay lean on purpose: parsed resume text, raw experience and
+ * education blobs are megabytes across a few hundred rows and no list screen
+ * renders them. Detail views fetch the full row.
+ */
+const APPLICATION_LIST_CANDIDATE =
+  "candidate:candidates(id, name, email, phone, location, current_role, current_company, years_experience, skills, resume_filename, resume_path, created_at)";
+
+const APPLICATION_SELECT = [
+  "id, job_id, candidate_id, match_score, match_label, match_summary, matching_skills, missing_skills,",
+  "status, error_message, source_filename, screened_at, shortlisted_at, created_at, updated_at,",
+  APPLICATION_LIST_CANDIDATE,
+  ", job:jobs(id, title, department, location, required_skills, preferred_skills, minimum_experience, status)",
+].join(" ");
+
+const JOB_LIST_SELECT =
+  "id, title, department, location, employment_type, minimum_experience, required_skills, preferred_skills, status, created_at, updated_at";
 
 const uuid = z.string().uuid();
 
@@ -20,7 +35,11 @@ async function admin() {
 
 export const listJobs = createServerFn({ method: "GET" }).handler(async () => {
   const db = await admin();
-  const { data, error } = await db.from("jobs").select("*").order("created_at", { ascending: false }).limit(500);
+  const { data, error } = await db
+    .from("jobs")
+    .select(JOB_LIST_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(500);
   if (error) throw new Error(error.message);
   return data ?? [];
 });
@@ -29,7 +48,7 @@ export const listOpenJobs = createServerFn({ method: "GET" }).handler(async () =
   const db = await admin();
   const { data, error } = await db
     .from("jobs")
-    .select("*")
+    .select(JOB_LIST_SELECT)
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(200);
@@ -79,7 +98,9 @@ export const listCandidates = createServerFn({ method: "GET" }).handler(async ()
   const db = await admin();
   const { data, error } = await db
     .from("candidates")
-    .select("*")
+    .select(
+      "id, name, email, phone, location, current_role, current_company, years_experience, skills, resume_filename, resume_path, created_at",
+    )
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);

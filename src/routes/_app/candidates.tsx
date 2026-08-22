@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { applicationsQuery, duplicateCandidatesQuery, jobsQuery, rankApplications } from "@/lib/queries";
-import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { hasPendingWork, useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { EXPERIENCE_BANDS, SCORE_BANDS } from "@/lib/screening-filters";
 import {
   PageHeader,
@@ -20,6 +20,12 @@ import { formatExperience, formatScore, relativeTime } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/candidates")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(applicationsQuery()),
+      context.queryClient.ensureQueryData(jobsQuery()),
+      context.queryClient.ensureQueryData(duplicateCandidatesQuery()),
+    ]),
   head: () => ({
     meta: [
       { title: "Candidates — Smart Resume Screener" },
@@ -35,10 +41,10 @@ export const Route = createFileRoute("/_app/candidates")({
 });
 
 function CandidatesPage() {
-  useApplicationsRealtime();
   const applications = useSuspenseQuery(applicationsQuery());
   const jobs = useSuspenseQuery(jobsQuery());
   const duplicates = useSuspenseQuery(duplicateCandidatesQuery());
+  useApplicationsRealtime(hasPendingWork(applications.data));
   const [term, setTerm] = useState("");
   const [jobFilter, setJobFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

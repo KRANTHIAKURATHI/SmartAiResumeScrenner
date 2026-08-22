@@ -8,6 +8,11 @@ import { formatDate, formatExperience } from "@/lib/domain";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/shortlist")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobsQuery()),
+      context.queryClient.ensureQueryData(applicationsQuery({ status: ["shortlisted"] })),
+    ]),
   head: () => ({
     meta: [
       { title: "Shortlist — Smart Resume Screener" },
@@ -23,7 +28,7 @@ export const Route = createFileRoute("/_app/shortlist")({
 });
 
 function ShortlistPage() {
-  useApplicationsRealtime();
+  useApplicationsRealtime(false);
   const queryClient = useQueryClient();
   const jobs = useSuspenseQuery(jobsQuery());
   const applications = useSuspenseQuery(applicationsQuery({ status: ["shortlisted"] }));
