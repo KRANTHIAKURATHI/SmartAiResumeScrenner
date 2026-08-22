@@ -133,8 +133,12 @@ export function ScoreWithBreakdown({
         </button>
       </HoverCardTrigger>
       <HoverCardContent
+        side="right"
         align="start"
-        className="w-auto rounded-[1.5rem] border border-border/60 bg-paper/70 p-4 shadow-xl backdrop-blur-xl backdrop-saturate-150"
+        sideOffset={10}
+        collisionPadding={16}
+        avoidCollisions
+        className="max-h-[min(28rem,calc(100vh-2rem))] w-auto overflow-y-auto rounded-[1.5rem] border border-border/60 bg-paper/70 p-4 shadow-xl backdrop-blur-xl backdrop-saturate-150"
       >
         <ScoreBreakdownCard input={input} />
       </HoverCardContent>
