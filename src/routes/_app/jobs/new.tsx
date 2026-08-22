@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { createJob } from "@/lib/data.functions";
+import { createJob, createResumeUpload, importJobDescriptionFile } from "@/lib/data.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, SectionHeading, btn, field, InlineError } from "@/components/app/primitives";
 import { toast } from "sonner";
 
@@ -30,6 +31,8 @@ function NewJobPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importedFile, setImportedFile] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
@@ -44,6 +47,35 @@ function NewJobPage() {
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
+
+  async function importFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("That file is larger than 8 MB.");
+      return;
+    }
+    setImporting(true);
+    try {
+      const { path, token } = await createResumeUpload({ data: { filename: file.name, folder: "uploads" } });
+      const { error: uploadError } = await supabase.storage
+        .from("resumes")
+        .uploadToSignedUrl(path, token, file, { contentType: file.type || "application/octet-stream" });
+      if (uploadError) throw new Error("upload");
+      const { text } = await importJobDescriptionFile({ data: { path, filename: file.name } });
+      setForm((prev) => ({
+        ...prev,
+        description: prev.description.trim() ? `${prev.description.trim()}\n\n${text}` : text,
+      }));
+      setImportedFile(file.name);
+      toast.success("Description imported. Review and edit before saving.");
+    } catch (err) {
+      toast.error(err instanceof Error && err.message !== "upload" ? err.message : "The file could not be imported.");
+    } finally {
+      setImporting(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -157,6 +189,23 @@ function NewJobPage() {
 
         <section className="space-y-4">
           <SectionHeading label="Description" />
+          <div className="flex flex-wrap items-center gap-3 border border-dashed border-rule px-4 py-3">
+            <label className={`${btn.ghost} cursor-pointer`}>
+              {importing ? "Reading…" : "Attach job description file"}
+              <input
+                type="file"
+                className="sr-only"
+                accept=".pdf,.docx,.txt,.md"
+                onChange={importFile}
+                disabled={importing || busy}
+              />
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {importedFile
+                ? `Imported from ${importedFile} — edit below as needed.`
+                : "Optional. PDF, DOCX or text — we pull the text into the field below."}
+            </span>
+          </div>
           <label className="block">
             <span className="label-caps">Responsibilities and context</span>
             <textarea
