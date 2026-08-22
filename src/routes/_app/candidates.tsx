@@ -208,14 +208,14 @@ function CandidatesPage() {
         />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse">
+          <table className="w-full min-w-[1000px] border-collapse">
             <thead>
               <tr>
                 <Th>Candidate</Th>
                 <Th>Current role</Th>
                 <Th>Applied to</Th>
                 <Th numeric>Match</Th>
-                <Th numeric>Exp.</Th>
+                <Th numeric>Experience</Th>
                 <Th>Top skills</Th>
                 <Th>Status</Th>
                 <Th>Uploaded</Th>
@@ -248,7 +248,7 @@ function CandidatesPage() {
                   <Td numeric>
                     <span className={cn("numeral", app.match_score != null && "text-primary")}>{formatScore(app.match_score)}</span>
                   </Td>
-                  <Td numeric className="numeral text-xs">
+                  <Td numeric className="numeral whitespace-nowrap text-xs">
                     {formatExperience(app.candidate?.years_experience)}
                   </Td>
                   <Td className="max-w-[16rem]">

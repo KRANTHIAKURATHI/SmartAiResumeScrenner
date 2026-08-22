@@ -48,7 +48,8 @@ export function formatScore100(score: number | null | undefined): string {
 export function formatExperience(years: number | null | undefined): string {
   if (years == null) return "Not found";
   if (years === 0) return "Entry level";
-  return `${Number(years) % 1 === 0 ? years : Number(years).toFixed(1)} yrs`;
+  const value = Number(years) % 1 === 0 ? years : Number(years).toFixed(1);
+  return `${value} ${Number(years) === 1 ? "year" : "years"}`;
 }
 
 export function formatBytes(bytes: number): string {
