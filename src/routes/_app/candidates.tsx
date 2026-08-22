@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { applicationsQuery, jobsQuery, rankApplications } from "@/lib/queries";
+import { applicationsQuery, duplicateCandidatesQuery, jobsQuery, rankApplications } from "@/lib/queries";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
+import { EXPERIENCE_BANDS, SCORE_BANDS } from "@/lib/screening-filters";
 import {
   PageHeader,
+  SectionHeading,
   EmptyState,
   StatusText,
   SkillList,
@@ -36,9 +38,18 @@ function CandidatesPage() {
   useApplicationsRealtime();
   const applications = useSuspenseQuery(applicationsQuery());
   const jobs = useSuspenseQuery(jobsQuery());
+  const duplicates = useSuspenseQuery(duplicateCandidatesQuery());
   const [term, setTerm] = useState("");
   const [jobFilter, setJobFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [minScore, setMinScore] = useState(0);
+  const [minExperience, setMinExperience] = useState(0);
+  const [duplicatesOnly, setDuplicatesOnly] = useState(false);
+
+  const duplicateIds = useMemo(
+    () => new Set(duplicates.data.flatMap((g) => g.candidates.map((c) => c.id))),
+    [duplicates.data],
+  );
 
   const rows = useMemo(() => {
     const q = term.trim().toLowerCase();
@@ -46,6 +57,9 @@ function CandidatesPage() {
       applications.data.filter((app) => {
         if (jobFilter !== "all" && app.job_id !== jobFilter) return false;
         if (statusFilter !== "all" && app.status !== statusFilter) return false;
+        if (minScore > 0 && Number(app.match_score ?? 0) < minScore) return false;
+        if (minExperience > 0 && Number(app.candidate?.years_experience ?? 0) < minExperience) return false;
+        if (duplicatesOnly && !(app.candidate_id && duplicateIds.has(app.candidate_id))) return false;
         if (!q) return true;
         const haystack = [
           app.candidate?.name,
@@ -64,7 +78,16 @@ function CandidatesPage() {
         return haystack.includes(q);
       }),
     );
-  }, [applications.data, term, jobFilter, statusFilter]);
+  }, [
+    applications.data,
+    term,
+    jobFilter,
+    statusFilter,
+    minScore,
+    minExperience,
+    duplicatesOnly,
+    duplicateIds,
+  ]);
 
   return (
     <div className="space-y-8">
@@ -106,7 +129,67 @@ function CandidatesPage() {
             ))}
           </select>
         </label>
+        <label className="block">
+          <span className="label-caps">Score band</span>
+          <select
+            className={`mt-1.5 ${field} w-auto`}
+            value={minScore}
+            onChange={(e) => setMinScore(Number(e.target.value))}
+          >
+            {SCORE_BANDS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label-caps">Experience</span>
+          <select
+            className={`mt-1.5 ${field} w-auto`}
+            value={minExperience}
+            onChange={(e) => setMinExperience(Number(e.target.value))}
+          >
+            {EXPERIENCE_BANDS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={duplicatesOnly}
+            onChange={(e) => setDuplicatesOnly(e.target.checked)}
+            className="size-3.5 accent-primary"
+          />
+          Duplicates only
+        </label>
       </div>
+
+      {duplicates.data.length > 0 && (
+        <section className="border border-rule bg-accent/40 p-4">
+          <SectionHeading label={`Possible duplicate candidates (${duplicates.data.length})`} />
+          <ul className="mt-3 space-y-2 text-sm">
+            {duplicates.data.slice(0, 8).map((group) => (
+              <li key={group.key} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="label-caps">{group.matchedOn}</span>
+                <span className="font-medium">{group.value}</span>
+                <span className="text-muted-foreground">
+                  — {group.candidates.length} records:{" "}
+                  {group.candidates.map((c) => c.name).join(", ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Matched on identical email, or the same phone number once formatting is stripped. Nothing is merged
+            automatically — review each record before rejecting a repeat application.
+          </p>
+        </section>
+      )}
+
 
       {rows.length === 0 ? (
         <EmptyState
@@ -145,6 +228,11 @@ function CandidatesPage() {
                         ? app.candidate.name
                         : (app.source_filename ?? "Resume")}
                     </Link>
+                    {app.candidate_id && duplicateIds.has(app.candidate_id) && (
+                      <span className="ml-2 border border-primary/40 px-1 text-[10px] uppercase tracking-widest text-primary">
+                        Duplicate
+                      </span>
+                    )}
                     <span className="block text-xs text-muted-foreground">{app.candidate?.email ?? "No email in resume"}</span>
                   </Td>
                   <Td className="text-muted-foreground">

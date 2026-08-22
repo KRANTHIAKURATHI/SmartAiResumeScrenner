@@ -3,11 +3,17 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { applicationsQuery, jobQuery, rankApplications } from "@/lib/queries";
+import { applicationsQuery, jobQuery } from "@/lib/queries";
 import { screenApplication } from "@/lib/screening.functions";
 import { setApplicationStatus, setJobStatus, deleteJob as deleteJobFn } from "@/lib/data.functions";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { ResumeUpload } from "@/components/app/ResumeUpload";
+import { ScreeningFilters } from "@/components/app/ScreeningFilters";
+import {
+  applyScreeningFilters,
+  DEFAULT_SCREENING_FILTERS,
+  type ScreeningFilterState,
+} from "@/lib/screening-filters";
 import {
   PageHeader,
   SectionHeading,
@@ -59,7 +65,7 @@ function JobDetailPage() {
   const rescreen = useServerFn(screenApplication);
   const job = useSuspenseQuery(jobQuery(jobId));
   const applications = useSuspenseQuery(applicationsQuery({ jobId }));
-  const [minScore, setMinScore] = useState(0);
+  const [filters, setFilters] = useState<ScreeningFilterState>(DEFAULT_SCREENING_FILTERS);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -70,7 +76,7 @@ function JobDetailPage() {
   const apps = applications.data;
   const scored = apps.filter((a) => Number.isFinite(Number(a.match_score)));
   const avg = scored.length ? scored.reduce((s, a) => s + Number(a.match_score), 0) / scored.length : null;
-  const ranked = rankApplications(apps).filter((a) => (minScore ? Number(a.match_score ?? 0) >= minScore : true));
+  const ranked = applyScreeningFilters(apps, filters);
 
   async function setStatus(applicationId: string, status: string) {
     setBusyId(applicationId);
@@ -185,31 +191,21 @@ function JobDetailPage() {
       </section>
 
       <section>
-        <SectionHeading
-          label="Ranked candidates"
-          action={
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              Min score
-              <input
-                type="range"
-                min={0}
-                max={10}
-                step={1}
-                value={minScore}
-                onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-24 accent-primary"
-              />
-              <span className="numeral w-4 text-foreground">{minScore}</span>
-            </label>
-          }
+        <SectionHeading label="Ranked candidates" />
+        <ScreeningFilters
+          value={filters}
+          onChange={setFilters}
+          skills={[...j.required_skills, ...j.preferred_skills]}
+          matched={ranked.length}
+          total={apps.length}
         />
         {ranked.length === 0 ? (
           <EmptyState
-            title={apps.length === 0 ? "No resumes uploaded for this role" : "No candidates above this score"}
+            title={apps.length === 0 ? "No resumes uploaded for this role" : "No candidates match these filters"}
             description={
               apps.length === 0
                 ? "Drop PDF or text resumes above. Each is stored, parsed and scored against this role's requirements."
-                : "Lower the minimum score to see more candidates."
+                : "Loosen the score, experience or skill filters to see more candidates."
             }
           />
         ) : (

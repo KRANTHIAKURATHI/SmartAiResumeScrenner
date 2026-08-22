@@ -6,7 +6,11 @@ import {
   listApplications,
   getApplication,
   listCandidates,
+  listDuplicateCandidates,
+  type DuplicateGroup,
 } from "@/lib/data.functions";
+
+export type { DuplicateGroup };
 
 export type JobRow = {
   id: string;
@@ -122,4 +126,11 @@ export const myApplicationsQuery = () =>
   queryOptions({
     queryKey: ["my-applications"],
     queryFn: async () => (await listApplications({ data: {} })) as unknown as ApplicationWithRelations[],
+  });
+
+/** Candidate records that look like the same person (same email or phone). */
+export const duplicateCandidatesQuery = () =>
+  queryOptions({
+    queryKey: ["duplicate-candidates"],
+    queryFn: async () => (await listDuplicateCandidates()) as unknown as DuplicateGroup[],
   });
