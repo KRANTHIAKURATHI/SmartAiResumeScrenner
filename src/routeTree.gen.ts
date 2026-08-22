@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCandidatesRouteImport } from './routes/_authenticated/candidates'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
+import { Route as AuthenticatedShortlistRouteImport } from './routes/_authenticated/shortlist'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as AuthenticatedApplicationsApplicationIdRouteImport } from './routes/_authenticated/applications/$applicationId'
 import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
@@ -42,6 +43,11 @@ const AuthenticatedCandidatesRoute = AuthenticatedCandidatesRouteImport.update({
 const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
   id: '/overview',
   path: '/overview',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedShortlistRoute = AuthenticatedShortlistRouteImport.update({
+  id: '/shortlist',
+  path: '/shortlist',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthResetRoute = AuthResetRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/candidates': typeof AuthenticatedCandidatesRoute
   '/overview': typeof AuthenticatedOverviewRoute
+  '/shortlist': typeof AuthenticatedShortlistRoute
   '/auth/reset': typeof AuthResetRoute
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/candidates': typeof AuthenticatedCandidatesRoute
   '/overview': typeof AuthenticatedOverviewRoute
+  '/shortlist': typeof AuthenticatedShortlistRoute
   '/auth/reset': typeof AuthResetRoute
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/candidates': typeof AuthenticatedCandidatesRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
+  '/_authenticated/shortlist': typeof AuthenticatedShortlistRoute
   '/auth/reset': typeof AuthResetRoute
   '/_authenticated/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/candidates'
     | '/overview'
+    | '/shortlist'
     | '/auth/reset'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/candidates'
     | '/overview'
+    | '/shortlist'
     | '/auth/reset'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/candidates'
     | '/_authenticated/overview'
+    | '/_authenticated/shortlist'
     | '/auth/reset'
     | '/_authenticated/applications/$applicationId'
     | '/_authenticated/jobs/$jobId'
@@ -186,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOverviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/shortlist': {
+      id: '/_authenticated/shortlist'
+      path: '/shortlist'
+      fullPath: '/shortlist'
+      preLoaderRoute: typeof AuthenticatedShortlistRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/auth/reset': {
       id: '/auth/reset'
       path: '/reset'
@@ -227,6 +246,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidatesRoute: typeof AuthenticatedCandidatesRoute
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
+  AuthenticatedShortlistRoute: typeof AuthenticatedShortlistRoute
   AuthenticatedApplicationsApplicationIdRoute: typeof AuthenticatedApplicationsApplicationIdRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
@@ -236,6 +256,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidatesRoute: AuthenticatedCandidatesRoute,
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
+  AuthenticatedShortlistRoute: AuthenticatedShortlistRoute,
   AuthenticatedApplicationsApplicationIdRoute:
     AuthenticatedApplicationsApplicationIdRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
