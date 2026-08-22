@@ -10,150 +10,120 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedCandidateRouteImport } from './routes/_authenticated/candidate'
-import { Route as AuthenticatedCandidatesRouteImport } from './routes/_authenticated/candidates'
-import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedShortlistRouteImport } from './routes/_authenticated/shortlist'
-import { Route as AuthResetRouteImport } from './routes/auth.reset'
-import { Route as AuthenticatedApplicationsApplicationIdRouteImport } from './routes/_authenticated/applications/$applicationId'
-import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
-import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs/$jobId'
-import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs/new'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as AppApplyRouteImport } from './routes/_app/apply'
+import { Route as AppCandidatesRouteImport } from './routes/_app/candidates'
+import { Route as AppOverviewRouteImport } from './routes/_app/overview'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
+import { Route as AppShortlistRouteImport } from './routes/_app/shortlist'
+import { Route as AppApplicationsApplicationIdRouteImport } from './routes/_app/applications/$applicationId'
+import { Route as AppJobsIndexRouteImport } from './routes/_app/jobs/index'
+import { Route as AppJobsJobIdRouteImport } from './routes/_app/jobs/$jobId'
+import { Route as AppJobsNewRouteImport } from './routes/_app/jobs/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
+const AppApplyRoute = AppApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedCandidateRoute = AuthenticatedCandidateRouteImport.update({
-  id: '/candidate',
-  path: '/candidate',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCandidatesRoute = AuthenticatedCandidatesRouteImport.update({
+const AppCandidatesRoute = AppCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
+const AppOverviewRoute = AppOverviewRouteImport.update({
   id: '/overview',
   path: '/overview',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedShortlistRoute = AuthenticatedShortlistRouteImport.update({
+const AppShortlistRoute = AppShortlistRouteImport.update({
   id: '/shortlist',
   path: '/shortlist',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthResetRoute = AuthResetRouteImport.update({
-  id: '/reset',
-  path: '/reset',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthenticatedApplicationsApplicationIdRoute =
-  AuthenticatedApplicationsApplicationIdRouteImport.update({
+const AppApplicationsApplicationIdRoute =
+  AppApplicationsApplicationIdRouteImport.update({
     id: '/applications/$applicationId',
     path: '/applications/$applicationId',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AppRouteRoute,
   } as any)
-const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
+const AppJobsIndexRoute = AppJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
+const AppJobsJobIdRoute = AppJobsJobIdRouteImport.update({
   id: '/jobs/$jobId',
   path: '/jobs/$jobId',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
+const AppJobsNewRoute = AppJobsNewRouteImport.update({
   id: '/jobs/new',
   path: '/jobs/new',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
-  '/candidate': typeof AuthenticatedCandidateRoute
-  '/candidates': typeof AuthenticatedCandidatesRoute
-  '/overview': typeof AuthenticatedOverviewRoute
-  '/profile': typeof AuthenticatedProfileRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/shortlist': typeof AuthenticatedShortlistRoute
-  '/auth/reset': typeof AuthResetRoute
-  '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
-  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
-  '/jobs/new': typeof AuthenticatedJobsNewRoute
-  '/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/apply': typeof AppApplyRoute
+  '/candidates': typeof AppCandidatesRoute
+  '/overview': typeof AppOverviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/shortlist': typeof AppShortlistRoute
+  '/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
+  '/jobs/$jobId': typeof AppJobsJobIdRoute
+  '/jobs/new': typeof AppJobsNewRoute
+  '/jobs/': typeof AppJobsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRouteWithChildren
-  '/candidate': typeof AuthenticatedCandidateRoute
-  '/candidates': typeof AuthenticatedCandidatesRoute
-  '/overview': typeof AuthenticatedOverviewRoute
-  '/profile': typeof AuthenticatedProfileRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/shortlist': typeof AuthenticatedShortlistRoute
-  '/auth/reset': typeof AuthResetRoute
-  '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
-  '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
-  '/jobs/new': typeof AuthenticatedJobsNewRoute
-  '/jobs': typeof AuthenticatedJobsIndexRoute
+  '/apply': typeof AppApplyRoute
+  '/candidates': typeof AppCandidatesRoute
+  '/overview': typeof AppOverviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/shortlist': typeof AppShortlistRoute
+  '/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
+  '/jobs/$jobId': typeof AppJobsJobIdRoute
+  '/jobs/new': typeof AppJobsNewRoute
+  '/jobs': typeof AppJobsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
-  '/_authenticated/candidate': typeof AuthenticatedCandidateRoute
-  '/_authenticated/candidates': typeof AuthenticatedCandidatesRoute
-  '/_authenticated/overview': typeof AuthenticatedOverviewRoute
-  '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/shortlist': typeof AuthenticatedShortlistRoute
-  '/auth/reset': typeof AuthResetRoute
-  '/_authenticated/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
-  '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
-  '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
-  '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
+  '/_app/apply': typeof AppApplyRoute
+  '/_app/candidates': typeof AppCandidatesRoute
+  '/_app/overview': typeof AppOverviewRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/shortlist': typeof AppShortlistRoute
+  '/_app/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
+  '/_app/jobs/$jobId': typeof AppJobsJobIdRoute
+  '/_app/jobs/new': typeof AppJobsNewRoute
+  '/_app/jobs/': typeof AppJobsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth'
-    | '/candidate'
+    | '/apply'
     | '/candidates'
     | '/overview'
-    | '/profile'
     | '/settings'
     | '/shortlist'
-    | '/auth/reset'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
     | '/jobs/new'
@@ -161,14 +131,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth'
-    | '/candidate'
+    | '/apply'
     | '/candidates'
     | '/overview'
-    | '/profile'
     | '/settings'
     | '/shortlist'
-    | '/auth/reset'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
     | '/jobs/new'
@@ -176,25 +143,21 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
-    | '/auth'
-    | '/_authenticated/candidate'
-    | '/_authenticated/candidates'
-    | '/_authenticated/overview'
-    | '/_authenticated/profile'
-    | '/_authenticated/settings'
-    | '/_authenticated/shortlist'
-    | '/auth/reset'
-    | '/_authenticated/applications/$applicationId'
-    | '/_authenticated/jobs/$jobId'
-    | '/_authenticated/jobs/new'
-    | '/_authenticated/jobs/'
+    | '/_app'
+    | '/_app/apply'
+    | '/_app/candidates'
+    | '/_app/overview'
+    | '/_app/settings'
+    | '/_app/shortlist'
+    | '/_app/applications/$applicationId'
+    | '/_app/jobs/$jobId'
+    | '/_app/jobs/new'
+    | '/_app/jobs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRouteWithChildren
+  AppRouteRoute: typeof AppRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -206,144 +169,110 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
+    '/_app': {
+      id: '/_app'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_app/apply': {
+      id: '/_app/apply'
+      path: '/apply'
+      fullPath: '/apply'
+      preLoaderRoute: typeof AppApplyRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/candidate': {
-      id: '/_authenticated/candidate'
-      path: '/candidate'
-      fullPath: '/candidate'
-      preLoaderRoute: typeof AuthenticatedCandidateRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/candidates': {
-      id: '/_authenticated/candidates'
+    '/_app/candidates': {
+      id: '/_app/candidates'
       path: '/candidates'
       fullPath: '/candidates'
-      preLoaderRoute: typeof AuthenticatedCandidatesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppCandidatesRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/overview': {
-      id: '/_authenticated/overview'
+    '/_app/overview': {
+      id: '/_app/overview'
       path: '/overview'
       fullPath: '/overview'
-      preLoaderRoute: typeof AuthenticatedOverviewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppOverviewRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
+    '/_app/settings': {
+      id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/shortlist': {
-      id: '/_authenticated/shortlist'
+    '/_app/shortlist': {
+      id: '/_app/shortlist'
       path: '/shortlist'
       fullPath: '/shortlist'
-      preLoaderRoute: typeof AuthenticatedShortlistRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppShortlistRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/auth/reset': {
-      id: '/auth/reset'
-      path: '/reset'
-      fullPath: '/auth/reset'
-      preLoaderRoute: typeof AuthResetRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_authenticated/applications/$applicationId': {
-      id: '/_authenticated/applications/$applicationId'
+    '/_app/applications/$applicationId': {
+      id: '/_app/applications/$applicationId'
       path: '/applications/$applicationId'
       fullPath: '/applications/$applicationId'
-      preLoaderRoute: typeof AuthenticatedApplicationsApplicationIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppApplicationsApplicationIdRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/jobs/': {
-      id: '/_authenticated/jobs/'
+    '/_app/jobs/': {
+      id: '/_app/jobs/'
       path: '/jobs'
       fullPath: '/jobs/'
-      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppJobsIndexRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/jobs/$jobId': {
-      id: '/_authenticated/jobs/$jobId'
+    '/_app/jobs/$jobId': {
+      id: '/_app/jobs/$jobId'
       path: '/jobs/$jobId'
       fullPath: '/jobs/$jobId'
-      preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppJobsJobIdRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/jobs/new': {
-      id: '/_authenticated/jobs/new'
+    '/_app/jobs/new': {
+      id: '/_app/jobs/new'
       path: '/jobs/new'
       fullPath: '/jobs/new'
-      preLoaderRoute: typeof AuthenticatedJobsNewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AppJobsNewRouteImport
+      parentRoute: typeof AppRouteRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCandidateRoute: typeof AuthenticatedCandidateRoute
-  AuthenticatedCandidatesRoute: typeof AuthenticatedCandidatesRoute
-  AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
-  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedShortlistRoute: typeof AuthenticatedShortlistRoute
-  AuthenticatedApplicationsApplicationIdRoute: typeof AuthenticatedApplicationsApplicationIdRoute
-  AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
-  AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
-  AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
+interface AppRouteRouteChildren {
+  AppApplyRoute: typeof AppApplyRoute
+  AppCandidatesRoute: typeof AppCandidatesRoute
+  AppOverviewRoute: typeof AppOverviewRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppShortlistRoute: typeof AppShortlistRoute
+  AppApplicationsApplicationIdRoute: typeof AppApplicationsApplicationIdRoute
+  AppJobsJobIdRoute: typeof AppJobsJobIdRoute
+  AppJobsNewRoute: typeof AppJobsNewRoute
+  AppJobsIndexRoute: typeof AppJobsIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCandidateRoute: AuthenticatedCandidateRoute,
-  AuthenticatedCandidatesRoute: AuthenticatedCandidatesRoute,
-  AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
-  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedShortlistRoute: AuthenticatedShortlistRoute,
-  AuthenticatedApplicationsApplicationIdRoute:
-    AuthenticatedApplicationsApplicationIdRoute,
-  AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
-  AuthenticatedJobsNewRoute: AuthenticatedJobsNewRoute,
-  AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppApplyRoute: AppApplyRoute,
+  AppCandidatesRoute: AppCandidatesRoute,
+  AppOverviewRoute: AppOverviewRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppShortlistRoute: AppShortlistRoute,
+  AppApplicationsApplicationIdRoute: AppApplicationsApplicationIdRoute,
+  AppJobsJobIdRoute: AppJobsJobIdRoute,
+  AppJobsNewRoute: AppJobsNewRoute,
+  AppJobsIndexRoute: AppJobsIndexRoute,
 }
 
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
-interface AuthRouteChildren {
-  AuthResetRoute: typeof AuthResetRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthResetRoute: AuthResetRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRouteWithChildren,
+  AppRouteRoute: AppRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

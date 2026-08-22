@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app/AppShell";
 
 const CANDIDATE_ALLOWED = ["/candidate", "/profile"];
 
-export const Route = createFileRoute("/_authenticated")({
+export const Route = createFileRoute("/_app")({
   ssr: false,
   beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();

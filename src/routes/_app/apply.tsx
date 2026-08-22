@@ -22,7 +22,7 @@ import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, validateResumeFile
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/candidate")({
+export const Route = createFileRoute("/_app/apply")({
   head: () => ({
     meta: [
       { title: "Apply with your resume — Smart Resume Screener" },
