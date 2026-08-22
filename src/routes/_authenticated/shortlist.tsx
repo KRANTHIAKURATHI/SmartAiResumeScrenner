@@ -37,7 +37,7 @@ function ShortlistPage() {
 
   async function remove(applicationId: string) {
     const { error } = await supabase.from("applications").update({ status: "screened" }).eq("id", applicationId);
-    if (error) return toast.error("Could not update this candidate.");
+    if (error) { toast.error("Could not update this candidate."); return; }
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
 

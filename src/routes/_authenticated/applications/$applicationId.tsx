@@ -79,7 +79,7 @@ function ApplicationPage() {
     if (status === "shortlisted") patch["shortlisted_at"] = new Date().toISOString();
     const { error } = await supabase.from("applications").update(patch).eq("id", app.id);
     setBusy(false);
-    if (error) return toast.error("Could not update this candidate.");
+    if (error) { toast.error("Could not update this candidate."); return; }
     queryClient.invalidateQueries({ queryKey: ["application", app.id] });
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
@@ -88,7 +88,7 @@ function ApplicationPage() {
     setSavingNotes(true);
     const { error } = await supabase.from("applications").update({ recruiter_notes: notes }).eq("id", app.id);
     setSavingNotes(false);
-    if (error) return toast.error("Notes could not be saved.");
+    if (error) { toast.error("Notes could not be saved."); return; }
     toast.success("Notes saved.");
     queryClient.invalidateQueries({ queryKey: ["application", app.id] });
   }
@@ -97,7 +97,7 @@ function ApplicationPage() {
     if (!candidate) return;
     try {
       const { url } = await resumeUrl({ data: { candidateId: candidate.id } });
-      if (!url) return toast.error("No stored resume file for this candidate.");
+      if (!url) { toast.error("No stored resume file for this candidate."); return; }
       window.open(url, "_blank", "noopener,noreferrer");
     } catch {
       toast.error("Could not open the resume file.");

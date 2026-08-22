@@ -40,7 +40,7 @@ function ProfilePage() {
       .update({ full_name: fullName.trim() || null })
       .eq("user_id", profile.user_id);
     setBusy(false);
-    if (error) return toast.error("Your profile could not be saved.");
+    if (error) { toast.error("Your profile could not be saved."); return; }
     toast.success("Profile updated.");
     queryClient.invalidateQueries({ queryKey: ["profile"] });
   }

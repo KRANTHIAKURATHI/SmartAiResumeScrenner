@@ -38,7 +38,7 @@ function SettingsPage() {
     setBusy("email");
     const { error } = await supabase.auth.updateUser({ email: email.trim() });
     setBusy(null);
-    if (error) return toast.error("That email could not be used. Try another.");
+    if (error) { toast.error("That email could not be used. Try another."); return; }
     toast.success("Check your inbox to confirm the new address.");
     queryClient.invalidateQueries({ queryKey: ["profile"] });
   }
@@ -48,7 +48,7 @@ function SettingsPage() {
     setBusy("password");
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(null);
-    if (error) return toast.error("The password could not be updated.");
+    if (error) { toast.error("The password could not be updated."); return; }
     setPassword("");
     toast.success("Password updated.");
   }

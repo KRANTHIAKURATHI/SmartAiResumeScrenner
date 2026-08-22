@@ -101,14 +101,14 @@ function JobDetailPage() {
 
   async function updateJobStatus(status: string) {
     const { error } = await supabase.from("jobs").update({ status }).eq("id", j.id);
-    if (error) return toast.error("Could not update the job status.");
+    if (error) { toast.error("Could not update the job status."); return; }
     queryClient.invalidateQueries({ queryKey: ["job", j.id] });
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
   }
 
   async function deleteJob() {
     const { error } = await supabase.from("jobs").delete().eq("id", j.id);
-    if (error) return toast.error("Delete the applications for this role first.");
+    if (error) { toast.error("Delete the applications for this role first."); return; }
     queryClient.invalidateQueries({ queryKey: ["jobs"] });
     toast.success("Job deleted.");
     navigate({ to: "/jobs" });

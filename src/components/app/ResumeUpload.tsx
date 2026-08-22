@@ -13,7 +13,7 @@ type QueueItem = {
   id: string;
   file: File;
   state: "queued" | "uploading" | "screening" | "done" | "error";
-  message?: string;
+  message?: string | undefined;
 };
 
 export function ResumeUpload({ jobId }: { jobId: string }) {

@@ -49,18 +49,18 @@ function NewJobPage() {
     e.preventDefault();
     setError(null);
 
-    if (form.title.trim().length < 2) return setError("Give the role a title.");
+    if (form.title.trim().length < 2) { setError("Give the role a title."); return; }
     if (form.description.trim().length < 40)
-      return setError("Add a fuller description — the analysis quality depends on it (at least 40 characters).");
+      { setError("Add a fuller description — the analysis quality depends on it (at least 40 characters)."); return; }
     const required = splitList(form.required_skills);
-    if (required.length === 0) return setError("List at least one required skill.");
+    if (required.length === 0) { setError("List at least one required skill."); return; }
 
     setBusy(true);
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) {
       setBusy(false);
-      return setError("Your session expired. Sign in again.");
+      { setError("Your session expired. Sign in again."); return; }
     }
 
     const { data, error: insertError } = await supabase
