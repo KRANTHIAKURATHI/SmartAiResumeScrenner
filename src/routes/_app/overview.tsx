@@ -175,7 +175,7 @@ function OverviewPage() {
                     <Link
                       to="/jobs/$jobId"
                       params={{ jobId: job.id }}
-                      className="flex items-center gap-3 py-3 transition-colors hover:bg-accent/60"
+                      className="flex items-center gap-6 py-3 transition-colors hover:bg-accent/60"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm">{job.title}</span>
@@ -183,10 +183,10 @@ function OverviewPage() {
                           {[job.department, job.location].filter(Boolean).join(" · ") || "No department set"}
                         </span>
                       </span>
-                      <span className={cn("text-xs", job.status === "active" ? "text-foreground" : "text-muted-foreground")}>
+                      <span className={cn("shrink-0 whitespace-nowrap text-xs", job.status === "active" ? "text-foreground" : "text-muted-foreground")}>
                         {job.status}
                       </span>
-                      <span className="numeral w-10 shrink-0 text-right text-sm">{count}</span>
+                      <span className="numeral w-12 shrink-0 pl-2 text-right text-sm">{count}</span>
                     </Link>
                   </li>
                 );

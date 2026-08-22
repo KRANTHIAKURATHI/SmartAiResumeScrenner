@@ -58,8 +58,8 @@ export function buildScoreBreakdown(input: ScoreBreakdownInput): { lines: Line[]
         years == null
           ? "Years not found in resume"
           : minExp > 0
-            ? `${years} yrs against ${minExp} yrs required`
-            : `${years} yrs · no minimum set`,
+            ? `${years} years against ${minExp} years required`
+            : `${years} years · no minimum set`,
       weight: 20,
       earned: (expRatio ?? 0) * 20,
     },
