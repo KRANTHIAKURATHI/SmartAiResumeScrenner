@@ -1,5 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  listJobs,
+  listOpenJobs,
+  getJob,
+  listApplications,
+  getApplication,
+  listCandidates,
+} from "@/lib/data.functions";
 
 export type JobRow = {
   id: string;
@@ -57,72 +64,41 @@ export type ApplicationRow = {
   updated_at: string;
 };
 
-function unwrap<T>({ data, error }: { data: T | null; error: { message: string } | null }): T {
-  if (error) throw new Error(error.message);
-  return (data ?? []) as T;
-}
-
-export const jobsQuery = () =>
-  queryOptions({
-    queryKey: ["jobs"],
-    queryFn: async () =>
-      unwrap<JobRow[]>(
-        await supabase.from("jobs").select("*").order("created_at", { ascending: false }),
-      ),
-  });
-
-export const jobQuery = (jobId: string) =>
-  queryOptions({
-    queryKey: ["job", jobId],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("jobs").select("*").eq("id", jobId).maybeSingle();
-      if (error) throw new Error(error.message);
-      return (data as JobRow | null) ?? null;
-    },
-  });
-
 export type ApplicationWithRelations = ApplicationRow & {
   candidate: CandidateRow | null;
   job: Pick<JobRow, "id" | "title" | "department" | "location" | "required_skills" | "preferred_skills" | "minimum_experience" | "status"> | null;
 };
 
-const APPLICATION_SELECT =
-  "*, candidate:candidates(*), job:jobs(id, title, department, location, required_skills, preferred_skills, minimum_experience, status)";
+export const jobsQuery = () =>
+  queryOptions({
+    queryKey: ["jobs"],
+    queryFn: async () => (await listJobs()) as unknown as JobRow[],
+  });
+
+export const jobQuery = (jobId: string) =>
+  queryOptions({
+    queryKey: ["job", jobId],
+    queryFn: async () => ((await getJob({ data: { jobId } })) as unknown as JobRow | null) ?? null,
+  });
 
 export const applicationsQuery = (filters?: { jobId?: string; status?: string[] }) =>
   queryOptions({
     queryKey: ["applications", filters ?? {}],
-    queryFn: async () => {
-      let query = supabase.from("applications").select(APPLICATION_SELECT);
-      if (filters?.jobId) query = query.eq("job_id", filters.jobId);
-      if (filters?.status?.length) query = query.in("status", filters.status);
-      const { data, error } = await query.order("created_at", { ascending: false }).limit(500);
-      if (error) throw new Error(error.message);
-      return (data ?? []) as unknown as ApplicationWithRelations[];
-    },
+    queryFn: async () =>
+      (await listApplications({ data: filters ?? {} })) as unknown as ApplicationWithRelations[],
   });
 
 export const applicationQuery = (applicationId: string) =>
   queryOptions({
     queryKey: ["application", applicationId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("applications")
-        .select("*, candidate:candidates(*), job:jobs(*)")
-        .eq("id", applicationId)
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return (data as unknown as ApplicationWithRelations | null) ?? null;
-    },
+    queryFn: async () =>
+      ((await getApplication({ data: { applicationId } })) as unknown as ApplicationWithRelations | null) ?? null,
   });
 
 export const candidatesQuery = () =>
   queryOptions({
     queryKey: ["candidates"],
-    queryFn: async () =>
-      unwrap<CandidateRow[]>(
-        await supabase.from("candidates").select("*").order("created_at", { ascending: false }).limit(500),
-      ),
+    queryFn: async () => (await listCandidates()) as unknown as CandidateRow[],
   });
 
 export function rankApplications(apps: ApplicationWithRelations[]) {
@@ -138,28 +114,12 @@ export function rankApplications(apps: ApplicationWithRelations[]) {
 export const openJobsQuery = () =>
   queryOptions({
     queryKey: ["open-jobs"],
-    queryFn: async () =>
-      unwrap<JobRow[]>(
-        await supabase
-          .from("jobs")
-          .select("*")
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(200),
-      ),
+    queryFn: async () => (await listOpenJobs()) as unknown as JobRow[],
   });
 
 /** Applications submitted through the public apply page. */
 export const myApplicationsQuery = () =>
   queryOptions({
     queryKey: ["my-applications"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("applications")
-        .select(APPLICATION_SELECT)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) throw new Error(error.message);
-      return (data ?? []) as unknown as ApplicationWithRelations[];
-    },
+    queryFn: async () => (await listApplications({ data: {} })) as unknown as ApplicationWithRelations[],
   });
