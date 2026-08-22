@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const applyInput = z.object({
@@ -10,28 +9,17 @@ const applyInput = z.object({
 });
 
 /**
- * Candidate self-service application: attaches an already-uploaded resume to an
- * open role, then runs the screening pipeline.
+ * Attaches an already-uploaded resume to an open role, then runs the screening
+ * pipeline. The workspace is a single shared desk — anyone can apply.
  */
 export const applyToJob = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => applyInput.parse(data))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: isCandidate } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "candidate",
-    });
-    if (!isCandidate) return { ok: false as const, error: "Only candidate accounts can apply to roles." };
-
-    if (!data.resumePath.startsWith(`${userId}/`)) {
-      return { ok: false as const, error: "That resume file doesn't belong to your account." };
-    }
-
-    const { data: job, error: jobError } = await supabase
+    const { data: job, error: jobError } = await supabaseAdmin
       .from("jobs")
-      .select("id, user_id, status")
+      .select("id, status")
       .eq("id", data.jobId)
       .maybeSingle();
     if (jobError) throw new Error(jobError.message);
@@ -39,19 +27,9 @@ export const applyToJob = createServerFn({ method: "POST" })
       return { ok: false as const, error: "This role is no longer accepting applications." };
     }
 
-    const { data: existing } = await supabase
-      .from("applications")
-      .select("id")
-      .eq("job_id", data.jobId)
-      .eq("candidate_user_id", userId)
-      .maybeSingle();
-    if (existing) return { ok: false as const, error: "You have already applied to this role." };
-
-    const { data: candidate, error: candidateError } = await supabase
+    const { data: candidate, error: candidateError } = await supabaseAdmin
       .from("candidates")
       .insert({
-        user_id: job.user_id,
-        candidate_user_id: userId,
         name: data.fullName?.trim() || "Unknown candidate",
         resume_path: data.resumePath,
         resume_filename: data.filename,
@@ -62,11 +40,9 @@ export const applyToJob = createServerFn({ method: "POST" })
       return { ok: false as const, error: "Your application record could not be created." };
     }
 
-    const { data: application, error: applicationError } = await supabase
+    const { data: application, error: applicationError } = await supabaseAdmin
       .from("applications")
       .insert({
-        user_id: job.user_id,
-        candidate_user_id: userId,
         job_id: data.jobId,
         candidate_id: candidate.id,
         source_filename: data.filename,

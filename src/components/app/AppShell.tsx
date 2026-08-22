@@ -1,10 +1,6 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type ReactNode } from "react";
-import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, UserRound, LogOut, FileUp } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { roleQuery } from "@/lib/queries";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
+import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -14,26 +10,18 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const candidateNav = [
-  { to: "/candidate", label: "Apply", icon: FileUp },
-] as const;
-
 const primaryNav = [
   { to: "/overview", label: "Overview", icon: LayoutList },
   { to: "/jobs", label: "Jobs", icon: Briefcase },
   { to: "/candidates", label: "Candidates", icon: Users },
   { to: "/shortlist", label: "Shortlist", icon: Bookmark },
+  { to: "/apply", label: "Apply", icon: FileUp },
 ] as const;
 
-const secondaryNav = [
-  { to: "/settings", label: "Settings", icon: Settings },
-  { to: "/profile", label: "Profile", icon: UserRound },
-] as const;
+const secondaryNav = [{ to: "/settings", label: "Settings", icon: Settings }] as const;
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const role = useQuery(roleQuery());
-  const items = role.data === "candidate" ? candidateNav : primaryNav;
 
   const item = (to: string, label: string, Icon: typeof Menu) => {
     const active = pathname === to || pathname.startsWith(`${to}/`);
@@ -57,33 +45,15 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-col gap-0.5">
-      {items.map((n) => item(n.to, n.label, n.icon))}
+      {primaryNav.map((n) => item(n.to, n.label, n.icon))}
       <div className="my-4 border-t border-rule" />
       {secondaryNav.map((n) => item(n.to, n.label, n.icon))}
     </nav>
   );
 }
 
-function useEmail() {
-  const [email, setEmail] = useState<string | null>(null);
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
-  }, []);
-  return email;
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const email = useEmail();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  async function signOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -102,15 +72,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </SheetHeader>
             <div className="mt-6 px-2">
               <NavList onNavigate={() => setMenuOpen(false)} />
-              <div className="mt-8 border-t border-rule pt-4">
-                <p className="truncate text-xs text-muted-foreground">{email}</p>
-                <button
-                  onClick={signOut}
-                  className="mt-2 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
-                </button>
-              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -127,15 +88,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavList />
           </div>
           <div className="mt-auto border-t border-rule px-3 pt-4">
-            <p className="truncate text-xs text-muted-foreground" title={email ?? ""}>
-              {email ?? "—"}
-            </p>
-            <button
-              onClick={signOut}
-              className="mt-2 flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <LogOut className="size-3.5" strokeWidth={1.75} /> Sign out
-            </button>
+            <Link to="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
+              Back to home
+            </Link>
           </div>
         </aside>
 
