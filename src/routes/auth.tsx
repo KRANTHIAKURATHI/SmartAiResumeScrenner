@@ -51,6 +51,8 @@ function friendlyAuthError(message: string): string {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const createAccountFn = useServerFn(createAccount);
+
   const [mode, setMode] = useState<Mode>("signin");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
