@@ -49,7 +49,7 @@ function AuthPage() {
       if (mode === "signin") {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        navigate({ to: "/overview", replace: true });
+        navigate({ to: "/", replace: true });
       } else if (mode === "signup") {
         const { error: err } = await supabase.auth.signUp({
           email,
@@ -62,7 +62,7 @@ function AuthPage() {
         if (err) throw err;
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          navigate({ to: "/overview", replace: true });
+          navigate({ to: "/", replace: true });
         } else {
           toast.success("Account created. Check your inbox to confirm your email.");
           setMode("signin");
@@ -173,7 +173,7 @@ function AuthPage() {
             </p>
           )}
           <p className="pt-2">
-            <Link to="/overview" className="hover:underline">
+            <Link to="/" className="hover:underline">
               Continue to workspace
             </Link>
           </p>
