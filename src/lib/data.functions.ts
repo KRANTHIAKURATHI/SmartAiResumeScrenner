@@ -35,7 +35,11 @@ async function admin() {
 
 export const listJobs = createServerFn({ method: "GET" }).handler(async () => {
   const db = await admin();
-  const { data, error } = await db.from("jobs").select("*").order("created_at", { ascending: false }).limit(500);
+  const { data, error } = await db
+    .from("jobs")
+    .select(JOB_LIST_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(500);
   if (error) throw new Error(error.message);
   return data ?? [];
 });
@@ -44,7 +48,7 @@ export const listOpenJobs = createServerFn({ method: "GET" }).handler(async () =
   const db = await admin();
   const { data, error } = await db
     .from("jobs")
-    .select("*")
+    .select(JOB_LIST_SELECT)
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(200);
@@ -94,7 +98,9 @@ export const listCandidates = createServerFn({ method: "GET" }).handler(async ()
   const db = await admin();
   const { data, error } = await db
     .from("candidates")
-    .select("*")
+    .select(
+      "id, name, email, phone, location, current_role, current_company, years_experience, skills, resume_filename, resume_path, created_at",
+    )
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) throw new Error(error.message);
