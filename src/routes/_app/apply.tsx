@@ -19,7 +19,7 @@ import {
   Th,
   Td,
 } from "@/components/app/primitives";
-import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, validateResumeFile } from "@/lib/domain";
+import { ACCEPTED_RESUME_TYPES, formatDate, formatExperience, formatScore100, validateResumeFile } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
