@@ -74,8 +74,8 @@ function JobDetailPage() {
 
   async function setStatus(applicationId: string, status: string) {
     setBusyId(applicationId);
-    const patch: Record<string, unknown> = { status };
-    if (status === "shortlisted") patch["shortlisted_at"] = new Date().toISOString();
+    const patch: { status: string; shortlisted_at?: string } = { status };
+    if (status === "shortlisted") patch.shortlisted_at = new Date().toISOString();
     const { error } = await supabase.from("applications").update(patch).eq("id", applicationId);
     setBusyId(null);
     if (error) {

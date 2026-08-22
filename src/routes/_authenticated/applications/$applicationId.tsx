@@ -75,8 +75,8 @@ function ApplicationPage() {
 
   async function setStatus(status: string) {
     setBusy(true);
-    const patch: Record<string, unknown> = { status };
-    if (status === "shortlisted") patch["shortlisted_at"] = new Date().toISOString();
+    const patch: { status: string; shortlisted_at?: string } = { status };
+    if (status === "shortlisted") patch.shortlisted_at = new Date().toISOString();
     const { error } = await supabase.from("applications").update(patch).eq("id", app.id);
     setBusy(false);
     if (error) { toast.error("Could not update this candidate."); return; }
