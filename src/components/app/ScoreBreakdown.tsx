@@ -77,33 +77,33 @@ export function buildScoreBreakdown(input: ScoreBreakdownInput): { lines: Line[]
 export function ScoreBreakdownCard({ input }: { input: ScoreBreakdownInput }) {
   const { lines, total } = buildScoreBreakdown(input);
   return (
-    <div className="w-[22rem] max-w-[85vw]">
-      <p className="label-caps">How this score was reached</p>
-      <p className="mt-2 flex items-baseline gap-1.5">
-        <span className="numeral text-2xl leading-none text-primary">{formatScore100(input.score)}</span>
-        <span className="text-xs text-muted-foreground">final analysis score</span>
+    <div className="w-[17.5rem] max-w-[80vw]">
+      <p className="label-caps text-[10px]">How this score was reached</p>
+      <p className="mt-1.5 flex items-baseline gap-1.5">
+        <span className="numeral text-xl leading-none text-primary">{formatScore100(input.score)}</span>
+        <span className="text-[11px] text-muted-foreground">final analysis score</span>
       </p>
-      <ul className="mt-3 divide-y divide-rule border-y border-rule">
+      <ul className="mt-2 divide-y divide-rule border-y border-rule">
         {lines.map((line) => {
           const pct = Math.max(0, Math.min(100, (line.earned / line.weight) * 100));
           return (
-            <li key={line.label} className="py-2.5">
+            <li key={line.label} className="py-1.5">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-sm">{line.label}</span>
-                <span className="numeral text-xs">
+                <span className="text-[12px]">{line.label}</span>
+                <span className="numeral text-[11px]">
                   {Math.round(line.earned)}
                   <span className="text-muted-foreground">/{line.weight}</span>
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">{line.detail}</p>
-              <div className="mt-1.5 h-[2px] w-full bg-border">
-                <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{line.detail}</p>
+              <div className="mt-1 h-[2px] w-full overflow-hidden rounded-full bg-border">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
               </div>
             </li>
           );
         })}
       </ul>
-      <p className="mt-3 text-xs text-muted-foreground">
+      <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
         Weighted factors total <span className="numeral">{total}/100</span>. The final score also weighs the written
         analysis of seniority and role fit, so the two can differ slightly.
       </p>
@@ -132,7 +132,7 @@ export function ScoreWithBreakdown({
           {children}
         </button>
       </HoverCardTrigger>
-      <HoverCardContent align="start" className="rounded-[3px] border-border bg-paper p-4 shadow-sm w-auto">
+      <HoverCardContent align="start" className="w-auto rounded-xl border-border bg-paper p-3.5 shadow-md">
         <ScoreBreakdownCard input={input} />
       </HoverCardContent>
     </HoverCard>
