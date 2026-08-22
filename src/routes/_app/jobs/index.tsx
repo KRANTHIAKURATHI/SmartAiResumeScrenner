@@ -8,6 +8,11 @@ import { formatDate, formatScore, JOB_STATUS_LABEL, type JobStatus } from "@/lib
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/jobs/")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobsQuery()),
+      context.queryClient.ensureQueryData(applicationsQuery()),
+    ]),
   head: () => ({
     meta: [
       { title: "Jobs — Smart Resume Screener" },

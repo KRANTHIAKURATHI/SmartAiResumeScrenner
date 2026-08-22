@@ -42,6 +42,11 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_app/jobs/$jobId")({
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobQuery(params.jobId)),
+      context.queryClient.ensureQueryData(applicationsQuery({ jobId: params.jobId })),
+    ]),
   head: () => ({
     meta: [
       { title: "Job screening — Smart Resume Screener" },

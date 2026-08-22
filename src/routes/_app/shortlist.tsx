@@ -8,6 +8,11 @@ import { formatDate, formatExperience } from "@/lib/domain";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/shortlist")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobsQuery()),
+      context.queryClient.ensureQueryData(applicationsQuery({ status: ["shortlisted"] })),
+    ]),
   head: () => ({
     meta: [
       { title: "Shortlist — Smart Resume Screener" },

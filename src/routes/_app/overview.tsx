@@ -17,6 +17,11 @@ import { formatScore, relativeTime } from "@/lib/domain";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/overview")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(jobsQuery()),
+      context.queryClient.ensureQueryData(applicationsQuery()),
+    ]),
   head: () => ({
     meta: [
       { title: "Screening overview — Smart Resume Screener" },

@@ -32,6 +32,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/applications/$applicationId")({
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(applicationQuery(params.applicationId)),
   head: () => ({
     meta: [
       { title: "Candidate analysis — Smart Resume Screener" },
