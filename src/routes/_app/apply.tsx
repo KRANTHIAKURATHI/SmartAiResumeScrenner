@@ -217,6 +217,13 @@ function ApplyPage() {
                       </span>
                     </Td>
                     <Td className="numeral text-xs">{formatDate(app.created_at)}</Td>
+                    <Td className="numeral text-sm">
+                      {app.match_score == null ? (
+                        <span className="text-xs text-muted-foreground">Pending</span>
+                      ) : (
+                        formatScore100(app.match_score)
+                      )}
+                    </Td>
                     <Td>
                       <StatusText status={app.status} />
                     </Td>
