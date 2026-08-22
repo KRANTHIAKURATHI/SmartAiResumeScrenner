@@ -3,11 +3,17 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { applicationsQuery, jobQuery, rankApplications } from "@/lib/queries";
+import { applicationsQuery, jobQuery } from "@/lib/queries";
 import { screenApplication } from "@/lib/screening.functions";
 import { setApplicationStatus, setJobStatus, deleteJob as deleteJobFn } from "@/lib/data.functions";
 import { useApplicationsRealtime } from "@/hooks/useApplicationsRealtime";
 import { ResumeUpload } from "@/components/app/ResumeUpload";
+import { ScreeningFilters } from "@/components/app/ScreeningFilters";
+import {
+  applyScreeningFilters,
+  DEFAULT_SCREENING_FILTERS,
+  type ScreeningFilterState,
+} from "@/lib/screening-filters";
 import {
   PageHeader,
   SectionHeading,
