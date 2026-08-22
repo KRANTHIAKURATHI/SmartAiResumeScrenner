@@ -27,7 +27,7 @@ Editorial-analytical, not SaaS-template. Instrument Serif for headings and numer
 11. **Shortlist** — Candidate, Job, Match score, Current role, Status, Added, Actions (open, remove).
 12. **Settings / Profile** — display name, email, screening defaults.
 
-Skeleton loaders (not spinners) for dashboard, tables, and profile. Written empty states for jobs, candidates, shortlist, search. Human-readable error messages for invalid/unsupported files, upload failure, parse failure, AI failure, auth and network problems — never raw errors. Starting state is empty: no demo rows.
+Skeleton loaders (not spinners) for dashboard, tables, and profile. A Realtime subscription on the job's applications keeps upload/parse/screen status live without a refresh. Written empty states for jobs, candidates, shortlist, search. Human-readable error messages for invalid/unsupported files, upload failure, parse failure, AI failure, auth and network problems — never raw errors. Starting state is empty: no demo rows.
 
 ## Data and security
 
