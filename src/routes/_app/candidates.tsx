@@ -106,7 +106,67 @@ function CandidatesPage() {
             ))}
           </select>
         </label>
+        <label className="block">
+          <span className="label-caps">Score band</span>
+          <select
+            className={`mt-1.5 ${field} w-auto`}
+            value={minScore}
+            onChange={(e) => setMinScore(Number(e.target.value))}
+          >
+            {SCORE_BANDS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="label-caps">Experience</span>
+          <select
+            className={`mt-1.5 ${field} w-auto`}
+            value={minExperience}
+            onChange={(e) => setMinExperience(Number(e.target.value))}
+          >
+            {EXPERIENCE_BANDS.map((b) => (
+              <option key={b.value} value={b.value}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={duplicatesOnly}
+            onChange={(e) => setDuplicatesOnly(e.target.checked)}
+            className="size-3.5 accent-primary"
+          />
+          Duplicates only
+        </label>
       </div>
+
+      {duplicates.data.length > 0 && (
+        <section className="border border-rule bg-accent/40 p-4">
+          <SectionHeading label={`Possible duplicate candidates (${duplicates.data.length})`} />
+          <ul className="mt-3 space-y-2 text-sm">
+            {duplicates.data.slice(0, 8).map((group) => (
+              <li key={group.key} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="label-caps">{group.matchedOn}</span>
+                <span className="font-medium">{group.value}</span>
+                <span className="text-muted-foreground">
+                  — {group.candidates.length} records:{" "}
+                  {group.candidates.map((c) => c.name).join(", ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Matched on identical email, or the same phone number once formatting is stripped. Nothing is merged
+            automatically — review each record before rejecting a repeat application.
+          </p>
+        </section>
+      )}
+
 
       {rows.length === 0 ? (
         <EmptyState
