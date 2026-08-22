@@ -72,25 +72,26 @@ function ApplicationPage() {
   const experience = (candidate?.experience as ExperienceEntry[] | null) ?? [];
   const certifications = (candidate?.certifications as string[] | null) ?? [];
   const coverage = (app.requirement_coverage as RequirementCoverageEntry[] | null) ?? [];
+  const appId = app.id;
 
   async function setStatus(status: string) {
     setBusy(true);
     const patch: { status: string; shortlisted_at?: string } = { status };
     if (status === "shortlisted") patch.shortlisted_at = new Date().toISOString();
-    const { error } = await supabase.from("applications").update(patch).eq("id", app.id);
+    const { error } = await supabase.from("applications").update(patch).eq("id", appId);
     setBusy(false);
     if (error) { toast.error("Could not update this candidate."); return; }
-    queryClient.invalidateQueries({ queryKey: ["application", app.id] });
+    queryClient.invalidateQueries({ queryKey: ["application", appId] });
     queryClient.invalidateQueries({ queryKey: ["applications"] });
   }
 
   async function saveNotes() {
     setSavingNotes(true);
-    const { error } = await supabase.from("applications").update({ recruiter_notes: notes }).eq("id", app.id);
+    const { error } = await supabase.from("applications").update({ recruiter_notes: notes }).eq("id", appId);
     setSavingNotes(false);
     if (error) { toast.error("Notes could not be saved."); return; }
     toast.success("Notes saved.");
-    queryClient.invalidateQueries({ queryKey: ["application", app.id] });
+    queryClient.invalidateQueries({ queryKey: ["application", appId] });
   }
 
   async function openResume() {
@@ -107,14 +108,14 @@ function ApplicationPage() {
   async function retry() {
     setBusy(true);
     try {
-      const result = await rescreen({ data: { applicationId: app.id } });
+      const result = await rescreen({ data: { applicationId: appId } });
       if (!result.ok) toast.error(result.error);
       else toast.success(`Rescreened — ${result.score}/10`);
     } catch {
       toast.error("Screening could not be completed.");
     } finally {
       setBusy(false);
-      queryClient.invalidateQueries({ queryKey: ["application", app.id] });
+      queryClient.invalidateQueries({ queryKey: ["application", appId] });
       queryClient.invalidateQueries({ queryKey: ["applications"] });
     }
   }
