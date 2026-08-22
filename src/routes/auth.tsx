@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { createAccount } from "@/lib/auth.functions";
 import { toast } from "sonner";
+
 
 type Mode = "signin" | "signup" | "forgot";
 type Role = "recruiter" | "candidate";
