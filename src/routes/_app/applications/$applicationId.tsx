@@ -18,6 +18,7 @@ import {
   btn,
   field,
 } from "@/components/app/primitives";
+import { ScoreWithBreakdown } from "@/components/app/ScoreBreakdown";
 import {
   formatDate,
   formatExperience,
