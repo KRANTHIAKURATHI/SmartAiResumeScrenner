@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
+import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authenticated/jobs/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +40,25 @@ const AuthResetRoute = AuthResetRouteImport.update({
   path: '/reset',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthenticatedJobsIndexRoute = AuthenticatedJobsIndexRouteImport.update({
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/overview': typeof AuthenticatedOverviewRoute
   '/auth/reset': typeof AuthResetRoute
+  '/jobs/': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/overview': typeof AuthenticatedOverviewRoute
   '/auth/reset': typeof AuthResetRoute
+  '/jobs': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +67,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/auth/reset': typeof AuthResetRoute
+  '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/overview' | '/auth/reset'
+  fullPaths: '/' | '/auth' | '/overview' | '/auth/reset' | '/jobs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/overview' | '/auth/reset'
+  to: '/' | '/auth' | '/overview' | '/auth/reset' | '/jobs'
   id:
     | '__root__'
     | '/'
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/overview'
     | '/auth/reset'
+    | '/_authenticated/jobs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -117,15 +127,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_authenticated/jobs/': {
+      id: '/_authenticated/jobs/'
+      path: '/jobs'
+      fullPath: '/jobs/'
+      preLoaderRoute: typeof AuthenticatedJobsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
+  AuthenticatedJobsIndexRoute: typeof AuthenticatedJobsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
+  AuthenticatedJobsIndexRoute: AuthenticatedJobsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
