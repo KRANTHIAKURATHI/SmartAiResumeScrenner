@@ -106,7 +106,7 @@ export const applicationQuery = (applicationId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("applications")
-        .select(`${APPLICATION_SELECT.replace("id, title, department", "*, title, department")}`.replace("*, title, department, location, required_skills, preferred_skills, minimum_experience, status", "*"))
+        .select("*, candidate:candidates(*), job:jobs(*)")
         .eq("id", applicationId)
         .maybeSingle();
       if (error) throw new Error(error.message);
