@@ -93,13 +93,15 @@ export type RequirementCoverageEntry = {
   evidence?: string | null;
 };
 
-export const ACCEPTED_RESUME_TYPES = [".pdf", ".txt", ".md"];
+export const ACCEPTED_RESUME_TYPES = [".pdf", ".docx", ".txt", ".md"];
 export const MAX_RESUME_BYTES = 10 * 1024 * 1024;
 
 export function validateResumeFile(file: File): string | null {
   const lower = file.name.toLowerCase();
   const okExt = ACCEPTED_RESUME_TYPES.some((ext) => lower.endsWith(ext));
-  if (!okExt) return "Unsupported file type. Upload a PDF or text resume.";
+  if (lower.endsWith(".doc") && !lower.endsWith(".docx"))
+    return "Legacy .doc files aren't supported. Save as .docx or PDF.";
+  if (!okExt) return "Unsupported file type. Upload a PDF, DOCX or text resume.";
   if (file.size > MAX_RESUME_BYTES) return "File is larger than 10 MB.";
   if (file.size === 0) return "File is empty.";
   return null;
