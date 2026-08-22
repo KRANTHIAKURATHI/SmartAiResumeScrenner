@@ -123,3 +123,10 @@ export const myApplicationsQuery = () =>
     queryKey: ["my-applications"],
     queryFn: async () => (await listApplications({ data: {} })) as unknown as ApplicationWithRelations[],
   });
+
+/** Candidate records that look like the same person (same email or phone). */
+export const duplicateCandidatesQuery = () =>
+  queryOptions({
+    queryKey: ["duplicate-candidates"],
+    queryFn: async () => (await listDuplicateCandidates()) as unknown as DuplicateGroup[],
+  });
