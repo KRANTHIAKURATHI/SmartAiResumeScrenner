@@ -8,6 +8,8 @@
  * LLM screening), not a distributed abuse guarantee.
  */
 
+import { getRequestHeader } from "@tanstack/start-server-core";
+
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
@@ -20,12 +22,12 @@ const RULES = {
 export type RateLimitAction = keyof typeof RULES;
 
 /** Best-effort caller identity from proxy headers. */
-export function callerFingerprint(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for");
+export function callerFingerprint() {
+  const forwarded = getRequestHeader("x-forwarded-for");
   return (
-    request.headers.get("cf-connecting-ip") ??
+    getRequestHeader("cf-connecting-ip") ??
     (forwarded ? (forwarded.split(",")[0]?.trim() ?? "unknown") : null) ??
-    request.headers.get("x-real-ip") ??
+    getRequestHeader("x-real-ip") ??
     "unknown"
   );
 }

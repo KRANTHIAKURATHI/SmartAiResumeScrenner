@@ -1,4 +1,4 @@
-import { createServerFn, getRequest } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const screenInput = z.object({ applicationId: z.string().uuid() });
@@ -8,7 +8,7 @@ export const screenApplication = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => screenInput.parse(data))
   .handler(async ({ data }) => {
     const { callerFingerprint, checkRateLimit, rateLimitMessage } = await import("./rate-limit.server");
-    const gate = checkRateLimit("screen", callerFingerprint(getRequest()));
+    const gate = checkRateLimit("screen", callerFingerprint());
     if (!gate.allowed) {
       return { ok: false as const, error: rateLimitMessage("screen", gate.retryAfterSeconds) };
     }
