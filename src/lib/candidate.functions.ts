@@ -15,6 +15,12 @@ const applyInput = z.object({
 export const applyToJob = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => applyInput.parse(data))
   .handler(async ({ data }) => {
+    const { callerFingerprint, checkRateLimit, rateLimitMessage } = await import("./rate-limit.server");
+    const gate = checkRateLimit("apply", callerFingerprint());
+    if (!gate.allowed) {
+      return { ok: false as const, error: rateLimitMessage("apply", gate.retryAfterSeconds) };
+    }
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: job, error: jobError } = await supabaseAdmin

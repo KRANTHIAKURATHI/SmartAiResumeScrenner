@@ -7,6 +7,12 @@ const screenInput = z.object({ applicationId: z.string().uuid() });
 export const screenApplication = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => screenInput.parse(data))
   .handler(async ({ data }) => {
+    const { callerFingerprint, checkRateLimit, rateLimitMessage } = await import("./rate-limit.server");
+    const gate = checkRateLimit("screen", callerFingerprint());
+    if (!gate.allowed) {
+      return { ok: false as const, error: rateLimitMessage("screen", gate.retryAfterSeconds) };
+    }
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: existing, error } = await supabaseAdmin
