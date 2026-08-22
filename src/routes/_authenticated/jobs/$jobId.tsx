@@ -189,7 +189,7 @@ function JobDetailPage() {
                 step={1}
                 value={minScore}
                 onChange={(e) => setMinScore(Number(e.target.value))}
-                className="w-24 accent-[hsl(var(--primary))]"
+                className="w-24 accent-primary"
               />
               <span className="numeral w-4 text-foreground">{minScore}</span>
             </label>
