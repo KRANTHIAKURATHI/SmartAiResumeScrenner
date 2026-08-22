@@ -59,7 +59,7 @@ function JobDetailPage() {
   const rescreen = useServerFn(screenApplication);
   const job = useSuspenseQuery(jobQuery(jobId));
   const applications = useSuspenseQuery(applicationsQuery({ jobId }));
-  const [minScore, setMinScore] = useState(0);
+  const [filters, setFilters] = useState<ScreeningFilterState>(DEFAULT_SCREENING_FILTERS);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -70,7 +70,7 @@ function JobDetailPage() {
   const apps = applications.data;
   const scored = apps.filter((a) => Number.isFinite(Number(a.match_score)));
   const avg = scored.length ? scored.reduce((s, a) => s + Number(a.match_score), 0) / scored.length : null;
-  const ranked = rankApplications(apps).filter((a) => (minScore ? Number(a.match_score ?? 0) >= minScore : true));
+  const ranked = applyScreeningFilters(apps, filters);
 
   async function setStatus(applicationId: string, status: string) {
     setBusyId(applicationId);
