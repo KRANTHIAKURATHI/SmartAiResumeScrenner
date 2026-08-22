@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-rule bg-paper px-4 py-3 md:hidden">
-        <Link to="/" className="font-serif text-lg leading-none">
+        <Link to="/overview" className="font-serif text-lg leading-none">
           Resume Screener
         </Link>
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex">
         {/* Desktop / tablet sidebar */}
         <aside className="sticky top-0 hidden h-screen w-[176px] shrink-0 flex-col border-r border-rule bg-sidebar px-4 py-6 md:flex lg:w-[220px]">
-          <Link to="/" className="block px-3">
+          <Link to="/overview" className="block px-3">
             <span className="font-serif text-xl leading-none">Resume</span>
             <span className="block font-serif text-xl leading-none">Screener</span>
           </Link>
