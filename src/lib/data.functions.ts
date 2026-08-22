@@ -185,3 +185,56 @@ export const createResumeUpload = createServerFn({ method: "POST" })
     if (error || !signed) throw new Error(error?.message ?? "Upload could not be prepared.");
     return { path, token: signed.token };
   });
+
+/** Normalises a contact value so "A@B.com " and "a@b.com" collide. */
+function normalizeEmail(value: string | null) {
+  return value ? value.trim().toLowerCase() : null;
+}
+
+/** Digits only, last 10 — tolerates +91, spaces, dashes and country prefixes. */
+function normalizePhone(value: string | null) {
+  if (!value) return null;
+  const digits = value.replace(/\D/g, "");
+  return digits.length >= 7 ? digits.slice(-10) : null;
+}
+
+export type DuplicateGroup = {
+  key: string;
+  matchedOn: "email" | "phone";
+  value: string;
+  candidates: { id: string; name: string; email: string | null; phone: string | null; created_at: string }[];
+};
+
+/**
+ * Groups candidate records that are almost certainly the same human: same
+ * email, or same phone number once formatting is stripped. Detection only —
+ * nothing is merged or deleted automatically.
+ */
+export const listDuplicateCandidates = createServerFn({ method: "GET" }).handler(async () => {
+  const db = await admin();
+  const { data, error } = await db
+    .from("candidates")
+    .select("id, name, email, phone, created_at")
+    .order("created_at", { ascending: true })
+    .limit(1000);
+  if (error) throw new Error(error.message);
+
+  const buckets = new Map<string, DuplicateGroup>();
+  for (const row of data ?? []) {
+    const email = normalizeEmail(row.email);
+    const phone = normalizePhone(row.phone);
+    const keys: { matchedOn: "email" | "phone"; value: string }[] = [];
+    if (email) keys.push({ matchedOn: "email", value: email });
+    if (phone) keys.push({ matchedOn: "phone", value: phone });
+    for (const k of keys) {
+      const key = `${k.matchedOn}:${k.value}`;
+      const group = buckets.get(key) ?? { key, matchedOn: k.matchedOn, value: k.value, candidates: [] };
+      group.candidates.push(row);
+      buckets.set(key, group);
+    }
+  }
+
+  return [...buckets.values()]
+    .filter((g) => g.candidates.length > 1)
+    .sort((a, b) => b.candidates.length - a.candidates.length) as DuplicateGroup[];
+});
