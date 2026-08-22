@@ -1,8 +1,10 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
-import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, UserRound, LogOut } from "lucide-react";
+import { Menu, LayoutList, Briefcase, Users, Bookmark, Settings, UserRound, LogOut, FileUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { roleQuery } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -11,6 +13,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
+const candidateNav = [
+  { to: "/candidate", label: "Apply", icon: FileUp },
+] as const;
 
 const primaryNav = [
   { to: "/overview", label: "Overview", icon: LayoutList },
@@ -26,6 +32,8 @@ const secondaryNav = [
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const role = useQuery(roleQuery());
+  const items = role.data === "candidate" ? candidateNav : primaryNav;
 
   const item = (to: string, label: string, Icon: typeof Menu) => {
     const active = pathname === to || pathname.startsWith(`${to}/`);
@@ -49,7 +57,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-col gap-0.5">
-      {primaryNav.map((n) => item(n.to, n.label, n.icon))}
+      {items.map((n) => item(n.to, n.label, n.icon))}
       <div className="my-4 border-t border-rule" />
       {secondaryNav.map((n) => item(n.to, n.label, n.icon))}
     </nav>
