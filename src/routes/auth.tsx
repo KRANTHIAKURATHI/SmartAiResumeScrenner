@@ -56,7 +56,7 @@ function AuthPage() {
           password,
           options: {
             data: { full_name: fullName },
-            emailRedirectTo: `${window.location.origin}/overview`,
+            emailRedirectTo: `${window.location.origin}/`,
           },
         });
         if (err) throw err;

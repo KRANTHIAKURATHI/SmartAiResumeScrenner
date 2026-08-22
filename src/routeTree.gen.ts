@@ -9,11 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedCandidatesRouteImport } from './routes/_authenticated/candidates'
-import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedShortlistRouteImport } from './routes/_authenticated/shortlist'
@@ -23,11 +22,6 @@ import { Route as AuthenticatedJobsIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs/$jobId'
 import { Route as AuthenticatedJobsNewRouteImport } from './routes/_authenticated/jobs/new'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -37,14 +31,14 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCandidatesRoute = AuthenticatedCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -90,10 +84,9 @@ const AuthenticatedJobsNewRoute = AuthenticatedJobsNewRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/candidates': typeof AuthenticatedCandidatesRoute
-  '/overview': typeof AuthenticatedOverviewRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shortlist': typeof AuthenticatedShortlistRoute
@@ -104,14 +97,13 @@ export interface FileRoutesByFullPath {
   '/jobs/': typeof AuthenticatedJobsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/candidates': typeof AuthenticatedCandidatesRoute
-  '/overview': typeof AuthenticatedOverviewRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shortlist': typeof AuthenticatedShortlistRoute
   '/auth/reset': typeof AuthResetRoute
+  '/': typeof AuthenticatedIndexRoute
   '/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/jobs/new': typeof AuthenticatedJobsNewRoute
@@ -119,15 +111,14 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/_authenticated/candidates': typeof AuthenticatedCandidatesRoute
-  '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shortlist': typeof AuthenticatedShortlistRoute
   '/auth/reset': typeof AuthResetRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/applications/$applicationId': typeof AuthenticatedApplicationsApplicationIdRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/jobs/new': typeof AuthenticatedJobsNewRoute
@@ -139,7 +130,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/candidates'
-    | '/overview'
     | '/profile'
     | '/settings'
     | '/shortlist'
@@ -150,29 +140,27 @@ export interface FileRouteTypes {
     | '/jobs/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/auth'
     | '/candidates'
-    | '/overview'
     | '/profile'
     | '/settings'
     | '/shortlist'
     | '/auth/reset'
+    | '/'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
     | '/jobs/new'
     | '/jobs'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/candidates'
-    | '/_authenticated/overview'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/shortlist'
     | '/auth/reset'
+    | '/_authenticated/'
     | '/_authenticated/applications/$applicationId'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/jobs/new'
@@ -180,20 +168,12 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -208,18 +188,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/candidates': {
       id: '/_authenticated/candidates'
       path: '/candidates'
       fullPath: '/candidates'
       preLoaderRoute: typeof AuthenticatedCandidatesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/overview': {
-      id: '/_authenticated/overview'
-      path: '/overview'
-      fullPath: '/overview'
-      preLoaderRoute: typeof AuthenticatedOverviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -283,10 +263,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCandidatesRoute: typeof AuthenticatedCandidatesRoute
-  AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShortlistRoute: typeof AuthenticatedShortlistRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedApplicationsApplicationIdRoute: typeof AuthenticatedApplicationsApplicationIdRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
   AuthenticatedJobsNewRoute: typeof AuthenticatedJobsNewRoute
@@ -295,10 +275,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCandidatesRoute: AuthenticatedCandidatesRoute,
-  AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShortlistRoute: AuthenticatedShortlistRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedApplicationsApplicationIdRoute:
     AuthenticatedApplicationsApplicationIdRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
@@ -320,7 +300,6 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
 }
