@@ -51,17 +51,10 @@ export function MetricStrip({
   items: { label: string; value: ReactNode; hint?: string }[];
 }) {
   return (
-    <dl className="grid grid-cols-2 divide-rule border-y border-rule sm:grid-cols-4 sm:divide-x">
-      {items.map((item, i) => (
-        <div
-          key={item.label}
-          className={cn(
-            "px-0 py-4 sm:px-5",
-            i % 2 === 1 && "border-l border-rule sm:border-l-0",
-            i > 1 && "border-t border-rule sm:border-t-0",
-            i === 0 && "sm:pl-0",
-          )}
-        >
+    <dl className="grid grid-cols-2 gap-x-10 gap-y-7 sm:grid-cols-4">
+      {items.map((item) => (
+        <div key={item.label} className="py-1">
+
           <dt className="label-caps">{item.label}</dt>
           <dd className="numeral mt-1.5 text-3xl leading-none">{item.value}</dd>
           {item.hint && <p className="mt-1.5 text-xs text-muted-foreground">{item.hint}</p>}
