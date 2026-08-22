@@ -11,7 +11,13 @@ function apply(theme: Theme) {
   document.documentElement.style.colorScheme = theme;
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  iconOnly = false,
+}: {
+  className?: string;
+  iconOnly?: boolean;
+}) {
   const [theme, setTheme] = useState<Theme>("light");
   const [ready, setReady] = useState(false);
 
@@ -41,7 +47,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       aria-pressed={dark}
       className={cn(
-        "flex items-center gap-2 rounded-sm border border-input px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:border-rule hover:text-foreground",
+        "inline-flex items-center gap-1.5 rounded-full border border-input text-muted-foreground transition-colors hover:border-rule hover:text-foreground",
+        iconOnly ? "size-7 justify-center" : "px-2.5 py-1 text-[0.6875rem]",
         className,
       )}
     >
@@ -50,7 +57,9 @@ export function ThemeToggle({ className }: { className?: string }) {
       ) : (
         <Sun className="size-3.5" strokeWidth={1.75} aria-hidden />
       )}
-      <span suppressHydrationWarning>{ready ? (dark ? "Dark" : "Light") : "Theme"}</span>
+      {!iconOnly && (
+        <span suppressHydrationWarning>{ready ? (dark ? "Dark" : "Light") : "Theme"}</span>
+      )}
     </button>
   );
 }
